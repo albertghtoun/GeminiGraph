@@ -63,10 +63,12 @@ void compute(Graph<Empty> * graph, VertexId root) {
           VertexId src = ptr->neighbour;
           if (active_in->get_bit(src)) {
             graph->emit(dst, src);
-            break;
+            return true;
           }
         }
+        return false;
       },
+      #ifdef EARLYSTOP
       [&](VertexId dst, VertexId msg) {
         if (cas(&parent[dst], graph->vertices, msg)) {
           active_out->set_bit(dst);
@@ -74,6 +76,14 @@ void compute(Graph<Empty> * graph, VertexId root) {
         }
         return 0;
       },
+      #else
+      [&](VertexId dst, VertexId msg) {
+        if (cas(&parent[dst], graph->vertices, msg)) {
+          active_out->set_bit(dst);
+          break;
+        }
+      },      
+      #endif
       active_in, visited
     );
     active_vertices = graph->process_vertices<VertexId>(

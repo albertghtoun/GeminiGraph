@@ -135,9 +135,19 @@ public:
   size_t local_send_buffer_limit;
   MessageBuffer ** local_send_buffer; // MessageBuffer* [threads]; numa-aware
 
+#ifdef EARLYSTOP
+  size_t local_send_back_buffer_limit;
+  MessageBuffer ** local_send_back_buffer; // MessageBuffer* [threads]; numa-aware
+#endif
+
   int current_send_part_id;
   MessageBuffer *** send_buffer; // MessageBuffer* [partitions] [sockets]; numa-aware
   MessageBuffer *** recv_buffer; // MessageBuffer* [partitions] [sockets]; numa-aware
+
+#ifdef EARLYSTOP
+  MessageBuffer *** send_back_buffer; // MessageBuffer* [partitions] [sockets]; numa-aware
+  MessageBuffer *** recv_back_buffer; // MessageBuffer* [partitions] [sockets]; numa-aware
+#endif
 
   Graph() {
     threads = numa_num_configured_cpus();
@@ -175,13 +185,21 @@ public:
     omp_set_dynamic(0);
     omp_set_num_threads(threads);
     thread_state = new ThreadState * [threads];
+    for (int t_i=0;t_i<threads;t_i++) {
+      thread_state[t_i] = (ThreadState*)numa_alloc_onnode( sizeof(ThreadState), get_socket_id(t_i));
+    }    
     local_send_buffer_limit = 16;
     local_send_buffer = new MessageBuffer * [threads];
     for (int t_i=0;t_i<threads;t_i++) {
-      thread_state[t_i] = (ThreadState*)numa_alloc_onnode( sizeof(ThreadState), get_socket_id(t_i));
       local_send_buffer[t_i] = (MessageBuffer*)numa_alloc_onnode( sizeof(MessageBuffer), get_socket_id(t_i));
       local_send_buffer[t_i]->init(get_socket_id(t_i));
     }
+    local_send_back_buffer_limit = 16;
+    local_send_back_buffer = new MessageBuffer * [threads];
+    for (int t_i=0;t_i<threads;t_i++) {
+      local_send_back_buffer[t_i] = (MessageBuffer*)numa_alloc_onnode( sizeof(MessageBuffer), get_socket_id(t_i));
+      local_send_back_buffer[t_i]->init(get_socket_id(t_i));
+    }    
     #pragma omp parallel for
     for (int t_i=0;t_i<threads;t_i++) {
       int s_i = get_socket_id(t_i);
@@ -210,6 +228,20 @@ public:
       }
     }
 
+#ifdef EARLYSTOP
+    send_back_buffer = new MessageBuffer ** [partitions];
+    recv_back_buffer = new MessageBuffer ** [partitions];    
+    for (int i=0;i<partitions;i++) {
+      send_back_buffer[i] = new MessageBuffer * [sockets];
+      recv_back_buffer[i] = new MessageBuffer * [sockets];
+      for (int s_i=0;s_i<sockets;s_i++) {
+        send_back_buffer[i][s_i] = (MessageBuffer*)numa_alloc_onnode( sizeof(MessageBuffer), s_i);
+        send_back_buffer[i][s_i]->init(s_i);
+        recv_back_buffer[i][s_i] = (MessageBuffer*)numa_alloc_onnode( sizeof(MessageBuffer), s_i);
+        recv_back_buffer[i][s_i]->init(s_i);
+      }
+    }
+#endif
     alpha = 8 * (partitions - 1);
 
     MPI_Barrier(MPI_COMM_WORLD);
@@ -1475,6 +1507,16 @@ public:
     local_send_buffer[t_i]->count = 0;
   }
 
+#ifdef EARLYSTOP
+  template<typename M>
+  void flush_local_send_back_buffer(int t_i) {
+    int s_i = get_socket_id(t_i);
+    int pos = __sync_fetch_and_add(&send_back_buffer[current_send_part_id][s_i]->count, local_send_back_buffer[t_i]->count);
+    memcpy(send_back_buffer[current_send_part_id][s_i]->data + sizeof(MsgUnit<M>) * pos, local_send_back_buffer[t_i]->data, sizeof(MsgUnit<M>) * local_send_back_buffer[t_i]->count);
+    local_send_back_buffer[t_i]->count = 0;
+  }
+#endif
+
   // emit a message to a vertex's master (dense) / mirror (sparse)
   template<typename M>
   void emit(VertexId vtx, M msg) {
@@ -1488,9 +1530,35 @@ public:
     }
   }
 
+#ifdef EARLYSTOP
+  template<typename M>
+  void emit_early_stop(VertexId vtx, M msg) {
+    int t_i = omp_get_thread_num();
+    MsgUnit<M> * buffer = (MsgUnit<M>*)local_send_back_buffer[t_i]->data;
+    buffer[local_send_back_buffer[t_i]->count].vertex = vtx;
+    buffer[local_send_back_buffer[t_i]->count].msg_data = msg;
+    local_send_back_buffer[t_i]->count += 1;
+    if (local_send_back_buffer[t_i]->count==local_send_back_buffer_limit) {
+      flush_local_send_back_buffer<M>(t_i);
+    }
+  }
+#endif
+
+#ifdef EARLYSTOP
+void dense_signal_earlystop(std::function<bool(VertexId, VertexAdjList<EdgeData>)> dense_signal, VertexId vid, VertexAdjList<EdgeData> adjlist) {
+  if (dense_signal(vid, adjlist)) {
+    emit_early_stop(vid, 1);
+  }
+}
+#endif 
+
   // process edges
   template<typename R, typename M>
+#ifdef EARLYSTOP
+  R process_edges(std::function<void(VertexId)> sparse_signal, std::function<R(VertexId, M, VertexAdjList<EdgeData>)> sparse_slot, std::function<bool(VertexId, VertexAdjList<EdgeData>)> dense_signal, std::function<R(VertexId, M)> dense_slot, Bitmap * active, Bitmap * dense_selective = nullptr) {
+#else
   R process_edges(std::function<void(VertexId)> sparse_signal, std::function<R(VertexId, M, VertexAdjList<EdgeData>)> sparse_slot, std::function<void(VertexId, VertexAdjList<EdgeData>)> dense_signal, std::function<R(VertexId, M)> dense_slot, Bitmap * active, Bitmap * dense_selective = nullptr) {
+#endif    
     double stream_time = 0;
     stream_time -= MPI_Wtime();
 
@@ -1498,6 +1566,10 @@ public:
       local_send_buffer[t_i]->resize( sizeof(MsgUnit<M>) * local_send_buffer_limit );
       local_send_buffer[t_i]->count = 0;
     }
+    for (int t_i=0;t_i<threads;t_i++) {
+      local_send_back_buffer[t_i]->resize( sizeof(MsgUnit<M>) * local_send_back_buffer_limit );
+      local_send_back_buffer[t_i]->count = 0;
+    }    
     R reducer = 0;
     EdgeId active_edges = process_vertices<EdgeId>(
       [&](VertexId vtx){
@@ -1515,6 +1587,16 @@ public:
           recv_buffer[i][s_i]->count = 0;
         }
       }
+#ifdef EARLYSTOP
+      for (int i=0;i<partitions;i++) {
+        for (int s_i=0;s_i<sockets;s_i++) {
+          recv_back_buffer[i][s_i]->resize( sizeof(MsgUnit<M>) * (partition_offset[i+1] - partition_offset[i]) * sockets );
+          send_back_buffer[i][s_i]->resize( sizeof(MsgUnit<M>) * owned_vertices * sockets );
+          send_back_buffer[i][s_i]->count = 0;
+          recv_back_buffer[i][s_i]->count = 0;
+        }
+      }
+#endif
     } else {
       for (int i=0;i<partitions;i++) {
         for (int s_i=0;s_i<sockets;s_i++) {
@@ -1524,6 +1606,16 @@ public:
           recv_buffer[i][s_i]->count = 0;
         }
       }
+#ifdef EARLYSTOP
+      for (int i=0;i<partitions;i++) {
+        for (int s_i=0;s_i<sockets;s_i++) {
+          recv_back_buffer[i][s_i]->resize( sizeof(MsgUnit<M>) * owned_vertices * sockets );
+          send_back_buffer[i][s_i]->resize( sizeof(MsgUnit<M>) * (partition_offset[i+1] - partition_offset[i]) * sockets );
+          send_back_buffer[i][s_i]->count = 0;
+          recv_back_buffer[i][s_i]->count = 0;
+        }
+      }
+#endif
     }
     size_t basic_chunk = 64;
     if (sparse) {
@@ -1694,6 +1786,11 @@ public:
       #endif
       int * send_queue = new int [partitions];
       int * recv_queue = new int [partitions];
+#ifdef EARLYSTOP
+      int * send_back_queue = new int [partitions];
+      int * recv_back_queue = new int [partitions];
+      //send_back_queue and recv_back_queue share the same queue size as send_queue and recv_queue
+#endif
       volatile int send_queue_size = 0;
       volatile int recv_queue_size = 0;
       std::mutex send_queue_mutex;
@@ -1715,6 +1812,12 @@ public:
           for (int s_i=0;s_i<sockets;s_i++) {
             MPI_Send(send_buffer[i][s_i]->data, sizeof(MsgUnit<M>) * send_buffer[i][s_i]->count, MPI_CHAR, i, PassMessage, MPI_COMM_WORLD);
           }
+#ifdef EARLYSTOP
+          int j = send_back_queue[step];
+          for (int s_i=0;s_i<sockets;s_i++) {
+            MPI_Send(send_back_buffer[j][s_i]->data, sizeof(MsgUnit<M>) * send_back_buffer[j][s_i]->count, MPI_CHAR, j, PassMessage, MPI_COMM_WORLD);
+          }
+#endif     
         }
       });
       std::thread recv_thread([&](){
@@ -1729,17 +1832,36 @@ public:
               MPI_Recv(recv_buffer[i][s_i]->data, recv_buffer[i][s_i]->count, MPI_CHAR, i, PassMessage, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
               recv_buffer[i][s_i]->count /= sizeof(MsgUnit<M>);
             }
+#ifdef EARLYSTOP
+            int j = (partition_id + 1) % partitions;
+            for (int s_i=0;s_i<sockets;s_i++) {
+              MPI_Status recv_status;
+              MPI_Probe(j, PassMessage, MPI_COMM_WORLD, &recv_status);
+              MPI_Get_count(&recv_status, MPI_CHAR, &recv_back_buffer[j][s_i]->count);
+              MPI_Recv(recv_back_buffer[j][s_i]->data, recv_back_buffer[j][s_i]->count, MPI_CHAR, j, PassMessage, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+              recv_back_buffer[j][s_i]->count /= sizeof(MsgUnit<M>);
+            }
+#endif
           }, i);
         }
         for (int step=1;step<partitions;step++) {
           int i = (partition_id - step + partitions) % partitions;
+#ifdef EARLYSTOP
+          int j = (partition_id + 1) % partitions;
+#endif
           threads[step-1].join();
           recv_queue[recv_queue_size] = i;
+#ifdef EARLYSTOP
+          recv_back_queue[recv_queue_size] = j;
+#endif
           recv_queue_mutex.lock();
           recv_queue_size += 1;
           recv_queue_mutex.unlock();
         }
         recv_queue[recv_queue_size] = partition_id;
+#ifdef EARLYSTOP
+        recv_back_queue[recv_queue_size] = partition_id;
+#endif
         recv_queue_mutex.lock();
         recv_queue_size += 1;
         recv_queue_mutex.unlock();
@@ -1748,6 +1870,10 @@ public:
       for (int step=0;step<partitions;step++) {
         current_send_part_id = (current_send_part_id + 1) % partitions;
         int i = current_send_part_id;
+#ifdef EARLYSTOP
+        int j = (partition_id - 1 + partitions) % partitions;
+#endif
+
         for (int t_i=0;t_i<threads;t_i++) {
           *thread_state[t_i] = tuned_chunks_dense[i][t_i];
         }
@@ -1765,7 +1891,11 @@ public:
             }
             for (VertexId p_v_i = begin_p_v_i; p_v_i < end_p_v_i; p_v_i ++) {
               VertexId v_i = compressed_incoming_adj_index[s_i][p_v_i].vertex;
+#ifdef EARLYSTOP
+              dense_signal_earlystop(dense_signal, v_i, VertexAdjList<EdgeData>(incoming_adj_list[s_i] + compressed_incoming_adj_index[s_i][p_v_i].index, incoming_adj_list[s_i] + compressed_incoming_adj_index[s_i][p_v_i+1].index));              
+#else
               dense_signal(v_i, VertexAdjList<EdgeData>(incoming_adj_list[s_i] + compressed_incoming_adj_index[s_i][p_v_i].index, incoming_adj_list[s_i] + compressed_incoming_adj_index[s_i][p_v_i+1].index));
+#endif
             }
           }
           thread_state[thread_id]->status = STEALING;
@@ -1781,7 +1911,11 @@ public:
               }
               for (VertexId p_v_i = begin_p_v_i; p_v_i < end_p_v_i; p_v_i ++) {
                 VertexId v_i = compressed_incoming_adj_index[s_i][p_v_i].vertex;
+#ifdef EARLYSTOP
+                dense_signal_earlystop(dense_signal, v_i, VertexAdjList<EdgeData>(incoming_adj_list[s_i] + compressed_incoming_adj_index[s_i][p_v_i].index, incoming_adj_list[s_i] + compressed_incoming_adj_index[s_i][p_v_i+1].index));                
+#else
                 dense_signal(v_i, VertexAdjList<EdgeData>(incoming_adj_list[s_i] + compressed_incoming_adj_index[s_i][p_v_i].index, incoming_adj_list[s_i] + compressed_incoming_adj_index[s_i][p_v_i+1].index));
+#endif
               }
             }
           }
@@ -1790,8 +1924,17 @@ public:
         for (int t_i=0;t_i<threads;t_i++) {
           flush_local_send_buffer<M>(t_i);
         }
+#ifdef EARLYSTOP
+        #pragma omp parallel for
+        for (int t_i=0;t_i<threads;t_i++) {
+          flush_local_send_back_buffer<M>(t_i);
+        }
+#endif
         if (i!=partition_id) {
           send_queue[send_queue_size] = i;
+#ifdef EARLYSTOP
+          send_back_queue[send_queue_size] = j;
+#endif
           send_queue_mutex.lock();
           send_queue_size += 1;
           send_queue_mutex.unlock();
