@@ -141,7 +141,7 @@ public:
 
   Graph() {
     threads = numa_num_configured_cpus();
-    sockets = numa_num_configured_nodes();
+    sockets = 1; //numa_num_configured_nodes();
     threads_per_socket = threads / sockets;
 
     init();
