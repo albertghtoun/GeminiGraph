@@ -1668,13 +1668,13 @@ public:
         std::thread send_thread([&](){
           for (int step=1;step<partitions;step++) {
             int recipient_id = (partition_id + step) % partitions;
-            MPI_Send(dense_selective->data + WORD_OFFSET(partition_offset[partition_id]), owned_vertices / 64, MPI_UNSIGNED_LONG, recipient_id, PassMessage, MPI_COMM_WORLD);
+            MPI_Send(dense_selective->data + WORD_OFFSET(partition_offset[partition_id]), (owned_vertices + 63) / 64, MPI_UNSIGNED_LONG, recipient_id, PassMessage, MPI_COMM_WORLD);
           }
         });
         std::thread recv_thread([&](){
           for (int step=1;step<partitions;step++) {
             int sender_id = (partition_id - step + partitions) % partitions;
-            MPI_Recv(dense_selective->data + WORD_OFFSET(partition_offset[sender_id]), (partition_offset[sender_id + 1] - partition_offset[sender_id]) / 64, MPI_UNSIGNED_LONG, sender_id, PassMessage, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Recv(dense_selective->data + WORD_OFFSET(partition_offset[sender_id]), (partition_offset[sender_id + 1] - partition_offset[sender_id] + 63) / 64, MPI_UNSIGNED_LONG, sender_id, PassMessage, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
           }
         });
         send_thread.join();
