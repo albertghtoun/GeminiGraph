@@ -40,9 +40,14 @@ Copyright (c) 2015-2016 Xiaowei Zhu, Tsinghua University
 #include "core/time.hpp"
 #include "core/type.hpp"
 
+#include "../../fmgf_core/fm.h"
+
+
 enum ThreadStatus {
   WORKING,
-  STEALING
+  STEALING,
+  WORKING_REMOTE,
+  STEALING_REMOTE
 };
 
 enum MessageTag {
@@ -60,15 +65,18 @@ struct ThreadState {
 struct MessageBuffer {
   size_t capacity;
   int count; // the actual size (i.e. bytes) should be sizeof(element) * count
+  int owned_count;  // the count of sender's locally owned vertices as MsgUnit in the buffer.
   char * data;
   MessageBuffer () {
     capacity = 0;
     count = 0;
+    owned_count = 0;
     data = NULL;
   }
   void init (int socket_id) {
     capacity = 4096;
     count = 0;
+    owned_count = 0;
     data = (char*)numa_alloc_onnode(capacity, socket_id);
   }
   void resize(size_t new_capacity) {
@@ -119,9 +127,14 @@ public:
   Bitmap ** incoming_adj_bitmap;
   EdgeId ** incoming_adj_index; // EdgeId [sockets] [vertices+1]; numa-aware
   AdjUnit<EdgeData> ** incoming_adj_list; // AdjUnit<EdgeData> [sockets] [vertices+1]; numa-aware
+
   Bitmap ** outgoing_adj_bitmap;
   EdgeId ** outgoing_adj_index; // EdgeId [sockets] [vertices+1]; numa-aware
   AdjUnit<EdgeData> ** outgoing_adj_list; // AdjUnit<EdgeData> [sockets] [vertices+1]; numa-aware
+  // MPI_Win outgoing_adj_bitmap_win, outgoing_adj_index_win, outgoing_adj_list_win;
+  MPI_Win*** outgoing_adj_bitmap_data_win; 
+  MPI_Win*** outgoing_adj_index_data_win;
+  MPI_Win*** outgoing_adj_list_data_win;
 
   VertexId * compressed_incoming_adj_vertices;
   CompressedAdjIndexUnit ** compressed_incoming_adj_index; // CompressedAdjIndexUnit [sockets] [...+1]; numa-aware
@@ -145,6 +158,17 @@ public:
     threads_per_socket = threads / sockets;
 
     init();
+  }
+
+  ~Graph() {
+    MPI_Barrier(MPI_COMM_WORLD);
+    for (int s_i = 0; s_i < sockets; s_i++) {
+      for (int t_i = 0; t_i < threads; t_i++) {
+        MPI_Win_free(outgoing_adj_bitmap_data_win[s_i][t_i]);
+        MPI_Win_free(outgoing_adj_index_data_win[s_i][t_i]);
+        MPI_Win_free(outgoing_adj_list_data_win[s_i][t_i]);
+      }
+    }
   }
 
   inline int get_socket_id(int thread_id) {
@@ -187,16 +211,20 @@ public:
       int s_i = get_socket_id(t_i);
       assert(numa_run_on_node(s_i)==0);
       #ifdef PRINT_DEBUG_MESSAGES
-      // printf("thread-%d bound to socket-%d\n", t_i, s_i);
+      // fprintf(stderr,"thread-%d bound to socket-%d\n", t_i, s_i);
       #endif
     }
     #ifdef PRINT_DEBUG_MESSAGES
-    // printf("threads=%d*%d\n", sockets, threads_per_socket);
-    // printf("interleave on %s\n", nodestring);
+    // fprintf(stderr,"threads=%d*%d\n", sockets, threads_per_socket);
+    // fprintf(stderr,"interleave on %s\n", nodestring);
     #endif
 
     MPI_Comm_rank(MPI_COMM_WORLD, &partition_id);
     MPI_Comm_size(MPI_COMM_WORLD, &partitions);
+    assert(FM::n_compute_partitions <= partitions);
+    int color = partition_id < FM::n_compute_partitions ? 0 : 1;
+    MPI_Comm_split(MPI_COMM_WORLD, color, partition_id, &FM::compute_comm_world);
+
     send_buffer = new MessageBuffer ** [partitions];
     recv_buffer = new MessageBuffer ** [partitions];
     for (int i=0;i<partitions;i++) {
@@ -237,7 +265,7 @@ public:
 
   // deallocate a vertex array
   template<typename T>
-  T * dealloc_vertex_array(T * array) {
+  void dealloc_vertex_array(T * array) {
     numa_free(array, sizeof(T) * vertices);
   }
 
@@ -308,13 +336,14 @@ public:
   // gather a vertex array
   template<typename T>
   void gather_vertex_array(T * array, int root) {
+    assert(root < FM::n_compute_partitions);
     if (partition_id!=root) {
-      MPI_Send(array + partition_offset[partition_id], sizeof(T) * owned_vertices, MPI_CHAR, root, GatherVertexArray, MPI_COMM_WORLD);
+      MPI_Send(array + partition_offset[partition_id], sizeof(T) * owned_vertices, MPI_CHAR, root, GatherVertexArray, FM::compute_comm_world);
     } else {
-      for (int i=0;i<partitions;i++) {
+      for (int i=0;i<FM::n_compute_partitions;i++) {
         if (i==partition_id) continue;
         MPI_Status recv_status;
-        MPI_Recv(array + partition_offset[i], sizeof(T) * (partition_offset[i + 1] - partition_offset[i]), MPI_CHAR, i, GatherVertexArray, MPI_COMM_WORLD, &recv_status);
+        MPI_Recv(array + partition_offset[i], sizeof(T) * (partition_offset[i + 1] - partition_offset[i]), MPI_CHAR, i, GatherVertexArray, FM::compute_comm_world, &recv_status);
         int length;
         MPI_Get_count(&recv_status, MPI_CHAR, &length);
         assert(length == sizeof(T) * (partition_offset[i + 1] - partition_offset[i]));
@@ -333,6 +362,7 @@ public:
         return i;
       }
     }
+
     assert(false);
   }
 
@@ -359,7 +389,7 @@ public:
     this->edges = total_bytes / edge_unit_size;
     #ifdef PRINT_DEBUG_MESSAGES
     if (partition_id==0) {
-      printf("|V| = %u, |E| = %lu\n", vertices, edges);
+      fprintf(stderr,"|V| = %u, |E| = %lu\n", vertices, edges);
     }
     #endif
 
@@ -442,7 +472,7 @@ public:
         for (VertexId v_i=partition_offset[i];v_i<partition_offset[i+1];v_i++) {
           part_out_edges += out_degree[v_i];
         }
-        printf("|V'_%d| = %u |E_%d| = %lu\n", i, partition_offset[i+1] - partition_offset[i], i, part_out_edges);
+        fprintf(stderr,"|V'_%d| = %u |E_%d| = %lu\n", i, partition_offset[i+1] - partition_offset[i], i, part_out_edges);
       }
     }
     MPI_Barrier(MPI_COMM_WORLD);
@@ -479,7 +509,7 @@ public:
           sub_part_out_edges += out_degree[v_i];
         }
         #ifdef PRINT_DEBUG_MESSAGES
-        printf("|V'_%d_%d| = %u |E_%d| = %lu\n", partition_id, s_i, local_partition_offset[s_i+1] - local_partition_offset[s_i], partition_id, sub_part_out_edges);
+        fprintf(stderr,"|V'_%d_%d| = %u |E_%d| = %lu\n", partition_id, s_i, local_partition_offset[s_i+1] - local_partition_offset[s_i], partition_id, sub_part_out_edges);
         #endif
       }
     }
@@ -505,10 +535,37 @@ public:
     outgoing_adj_index = new EdgeId* [sockets];
     outgoing_adj_list = new AdjUnit<EdgeData>* [sockets];
     outgoing_adj_bitmap = new Bitmap * [sockets];
+    outgoing_adj_index_data_win = new MPI_Win** [sockets];
+    outgoing_adj_bitmap_data_win = new MPI_Win** [sockets];
+    outgoing_adj_list_data_win = new MPI_Win** [sockets];
+
     for (int s_i=0;s_i<sockets;s_i++) {
       outgoing_adj_bitmap[s_i] = new Bitmap (vertices);
       outgoing_adj_bitmap[s_i]->clear();
       outgoing_adj_index[s_i] = (EdgeId*)numa_alloc_onnode(sizeof(EdgeId) * (vertices+1), s_i);
+    }
+    if (partition_id >= FM::n_compute_partitions) {
+      for (int s_i=0; s_i<sockets; s_i++) {
+        outgoing_adj_bitmap_data_win[s_i] = new MPI_Win* [threads];
+        outgoing_adj_index_data_win[s_i] = new MPI_Win* [threads];
+        for (int t_i=0; t_i<threads; t_i++) {
+          outgoing_adj_bitmap_data_win[s_i][t_i] = new MPI_Win;
+          MPI_Win_create(outgoing_adj_bitmap[s_i]->data, (WORD_OFFSET(vertices)+1)*sizeof(unsigned long), sizeof(unsigned long), MPI_INFO_NULL, MPI_COMM_WORLD, outgoing_adj_bitmap_data_win[s_i][t_i]);
+          outgoing_adj_index_data_win[s_i][t_i] = new MPI_Win;
+          MPI_Win_create(outgoing_adj_index[s_i], (vertices+1)*sizeof(EdgeId), sizeof(EdgeId), MPI_INFO_NULL, MPI_COMM_WORLD, outgoing_adj_index_data_win[s_i][t_i]);
+        }
+      }
+    } else {
+      for (int s_i=0; s_i<sockets; s_i++) {
+        outgoing_adj_bitmap_data_win[s_i] = new MPI_Win* [threads];
+        outgoing_adj_index_data_win[s_i] = new MPI_Win* [threads];
+        for (int t_i=0; t_i<threads; t_i++) {
+          outgoing_adj_bitmap_data_win[s_i][t_i] = new MPI_Win;
+          MPI_Win_create(NULL, 0, 1, MPI_INFO_NULL, MPI_COMM_WORLD, outgoing_adj_bitmap_data_win[s_i][t_i]);
+          outgoing_adj_index_data_win[s_i][t_i] = new MPI_Win;
+          MPI_Win_create(NULL, 0, 1, MPI_INFO_NULL, MPI_COMM_WORLD, outgoing_adj_index_data_win[s_i][t_i]);        
+        }
+      }
     }
     {
       std::thread recv_thread_dst([&](){
@@ -534,12 +591,12 @@ public:
             VertexId src = recv_buffer[e_i].src;
             VertexId dst = recv_buffer[e_i].dst;
             assert(dst >= partition_offset[partition_id] && dst < partition_offset[partition_id+1]);
-            int dst_part = get_local_partition_id(dst);
-            if (!outgoing_adj_bitmap[dst_part]->get_bit(src)) {
-              outgoing_adj_bitmap[dst_part]->set_bit(src);
-              outgoing_adj_index[dst_part][src] = 0;
+            int dst_socket = get_local_partition_id(dst);
+            if (!outgoing_adj_bitmap[dst_socket]->get_bit(src)) {
+              outgoing_adj_bitmap[dst_socket]->set_bit(src);
+              outgoing_adj_index[dst_socket][src] = 0;
             }
-            __sync_fetch_and_add(&outgoing_adj_index[dst_part][src], 1);
+            __sync_fetch_and_add(&outgoing_adj_index[dst_socket][src], 1);
           }
           recv_outgoing_edges += recv_edges;
         }
@@ -597,7 +654,7 @@ public:
       }
       recv_thread_dst.join();
       #ifdef PRINT_DEBUG_MESSAGES
-      printf("machine(%d) got %lu symmetric edges\n", partition_id, recv_outgoing_edges);
+      fprintf(stderr,"machine(%d) got %lu symmetric edges\n", partition_id, recv_outgoing_edges);
       #endif
     }
     compressed_outgoing_adj_vertices = new VertexId [sockets];
@@ -630,9 +687,18 @@ public:
         outgoing_adj_index[s_i][v_i+1] = compressed_outgoing_adj_index[s_i][p_v_i+1].index;
       }
       #ifdef PRINT_DEBUG_MESSAGES
-      printf("part(%d) E_%d has %lu symmetric edges\n", partition_id, s_i, outgoing_edges[s_i]);
+      fprintf(stderr,"part(%d) E_%d has %lu symmetric edges\n", partition_id, s_i, outgoing_edges[s_i]);
       #endif
       outgoing_adj_list[s_i] = (AdjUnit<EdgeData>*)numa_alloc_onnode(unit_size * outgoing_edges[s_i], s_i);
+      outgoing_adj_list_data_win[s_i] = new MPI_Win* [threads];
+      for (int t_i=0; t_i<threads; t_i++) {
+        outgoing_adj_list_data_win[s_i][t_i] = new MPI_Win;
+        if (partition_id >= FM::n_compute_partitions) {
+          MPI_Win_create(outgoing_adj_list[s_i], outgoing_edges[s_i]*unit_size, unit_size, MPI_INFO_NULL, MPI_COMM_WORLD, outgoing_adj_list_data_win[s_i][t_i]);
+        } else {
+          MPI_Win_create(NULL, 0, 1, MPI_INFO_NULL, MPI_COMM_WORLD, outgoing_adj_list_data_win[s_i][t_i]);                
+        }
+      }
     }
     {
       std::thread recv_thread_dst([&](){
@@ -658,11 +724,11 @@ public:
             VertexId src = recv_buffer[e_i].src;
             VertexId dst = recv_buffer[e_i].dst;
             assert(dst >= partition_offset[partition_id] && dst < partition_offset[partition_id+1]);
-            int dst_part = get_local_partition_id(dst);
-            EdgeId pos = __sync_fetch_and_add(&outgoing_adj_index[dst_part][src], 1);
-            outgoing_adj_list[dst_part][pos].neighbour = dst;
+            int dst_socket = get_local_partition_id(dst);
+            EdgeId pos = __sync_fetch_and_add(&outgoing_adj_index[dst_socket][src], 1);
+            outgoing_adj_list[dst_socket][pos].neighbour = dst;
             if (!std::is_same<EdgeData, Empty>::value) {
-              outgoing_adj_list[dst_part][pos].edge_data = recv_buffer[e_i].edge_data;
+              outgoing_adj_list[dst_socket][pos].edge_data = recv_buffer[e_i].edge_data;
             }
           }
         }
@@ -750,7 +816,7 @@ public:
 
     #ifdef PRINT_DEBUG_MESSAGES
     if (partition_id==0) {
-      printf("preprocessing cost: %.2lf (s)\n", prep_time);
+      fprintf(stderr,"preprocessing cost: %.2lf (s)\n", prep_time);
     }
     #endif
   }
@@ -771,7 +837,11 @@ public:
   void load_directed(std::string path, VertexId vertices) {
     double prep_time = 0;
     prep_time -= MPI_Wtime();
-
+    #ifdef PRINT_DEBUG_MESSAGES
+    if (partition_id==0) {
+      fprintf(stderr, "load directed graph...");
+    }
+    #endif
     symmetric = false;
 
     MPI_Datatype vid_t = get_mpi_data_type<VertexId>();
@@ -781,10 +851,10 @@ public:
     this->edges = total_bytes / edge_unit_size;
     #ifdef PRINT_DEBUG_MESSAGES
     if (partition_id==0) {
-      printf("|V| = %u, |E| = %lu\n", vertices, edges);
+      fprintf(stderr,"|V| = %u, |E| = %lu\n", vertices, edges);
     }
     #endif
-
+    MPI_Barrier(MPI_COMM_WORLD);
     EdgeId read_edges = edges / partitions;
     if (partition_id==partitions-1) {
       read_edges += edges % partitions;
@@ -863,7 +933,7 @@ public:
         for (VertexId v_i=partition_offset[i];v_i<partition_offset[i+1];v_i++) {
           part_out_edges += out_degree[v_i];
         }
-        printf("|V'_%d| = %u |E^dense_%d| = %lu\n", i, partition_offset[i+1] - partition_offset[i], i, part_out_edges);
+        fprintf(stderr,"|V'_%d| = %u |E^dense_%d| = %lu\n", i, partition_offset[i+1] - partition_offset[i], i, part_out_edges);
       }
     }
     #endif
@@ -899,7 +969,7 @@ public:
           sub_part_out_edges += out_degree[v_i];
         }
         #ifdef PRINT_DEBUG_MESSAGES
-        printf("|V'_%d_%d| = %u |E^dense_%d_%d| = %lu\n", partition_id, s_i, local_partition_offset[s_i+1] - local_partition_offset[s_i], partition_id, s_i, sub_part_out_edges);
+        fprintf(stderr,"|V'_%d_%d| = %u |E^dense_%d_%d| = %lu\n", partition_id, s_i, local_partition_offset[s_i+1] - local_partition_offset[s_i], partition_id, s_i, sub_part_out_edges);
         #endif
       }
     }
@@ -927,10 +997,37 @@ public:
     outgoing_adj_index = new EdgeId* [sockets];
     outgoing_adj_list = new AdjUnit<EdgeData>* [sockets];
     outgoing_adj_bitmap = new Bitmap * [sockets];
+    outgoing_adj_index_data_win = new MPI_Win** [sockets];
+    outgoing_adj_bitmap_data_win = new MPI_Win** [sockets];
+    outgoing_adj_list_data_win = new MPI_Win** [sockets];
+
     for (int s_i=0;s_i<sockets;s_i++) {
       outgoing_adj_bitmap[s_i] = new Bitmap (vertices);
       outgoing_adj_bitmap[s_i]->clear();
       outgoing_adj_index[s_i] = (EdgeId*)numa_alloc_onnode(sizeof(EdgeId) * (vertices+1), s_i);
+    }
+    if (partition_id >= FM::n_compute_partitions) {
+      for (int s_i=0; s_i<sockets; s_i++) {
+        outgoing_adj_bitmap_data_win[s_i] = new MPI_Win* [threads];
+        outgoing_adj_index_data_win[s_i] = new MPI_Win* [threads];
+        for (int t_i=0; t_i<threads; t_i++) {
+          outgoing_adj_bitmap_data_win[s_i][t_i] = new MPI_Win;
+          MPI_Win_create(outgoing_adj_bitmap[s_i]->data, (WORD_OFFSET(vertices)+1)*sizeof(unsigned long), sizeof(unsigned long), MPI_INFO_NULL, MPI_COMM_WORLD, outgoing_adj_bitmap_data_win[s_i][t_i]);
+          outgoing_adj_index_data_win[s_i][t_i] = new MPI_Win;
+          MPI_Win_create(outgoing_adj_index[s_i], (vertices+1)*sizeof(EdgeId), sizeof(EdgeId), MPI_INFO_NULL, MPI_COMM_WORLD, outgoing_adj_index_data_win[s_i][t_i]);
+        }
+      }
+    } else {
+      for (int s_i=0; s_i<sockets; s_i++) {
+        outgoing_adj_bitmap_data_win[s_i] = new MPI_Win* [threads];
+        outgoing_adj_index_data_win[s_i] = new MPI_Win* [threads];
+        for (int t_i=0; t_i<threads; t_i++) {
+          outgoing_adj_bitmap_data_win[s_i][t_i] = new MPI_Win;
+          MPI_Win_create(NULL, 0, 1, MPI_INFO_NULL, MPI_COMM_WORLD, outgoing_adj_bitmap_data_win[s_i][t_i]);
+          outgoing_adj_index_data_win[s_i][t_i] = new MPI_Win;
+          MPI_Win_create(NULL, 0, 1, MPI_INFO_NULL, MPI_COMM_WORLD, outgoing_adj_index_data_win[s_i][t_i]);        
+        }
+      }
     }
     {
       std::thread recv_thread_dst([&](){
@@ -956,12 +1053,12 @@ public:
             VertexId src = recv_buffer[e_i].src;
             VertexId dst = recv_buffer[e_i].dst;
             assert(dst >= partition_offset[partition_id] && dst < partition_offset[partition_id+1]);
-            int dst_part = get_local_partition_id(dst);
-            if (!outgoing_adj_bitmap[dst_part]->get_bit(src)) {
-              outgoing_adj_bitmap[dst_part]->set_bit(src);
-              outgoing_adj_index[dst_part][src] = 0;
+            int dst_socket = get_local_partition_id(dst);
+            if (!outgoing_adj_bitmap[dst_socket]->get_bit(src)) {
+              outgoing_adj_bitmap[dst_socket]->set_bit(src);
+              outgoing_adj_index[dst_socket][src] = 0;
             }
-            __sync_fetch_and_add(&outgoing_adj_index[dst_part][src], 1);
+            __sync_fetch_and_add(&outgoing_adj_index[dst_socket][src], 1);
             __sync_fetch_and_add(&in_degree[dst], 1);
           }
           recv_outgoing_edges += recv_edges;
@@ -1004,7 +1101,7 @@ public:
       }
       recv_thread_dst.join();
       #ifdef PRINT_DEBUG_MESSAGES
-      printf("machine(%d) got %lu sparse mode edges\n", partition_id, recv_outgoing_edges);
+      fprintf(stderr,"machine(%d) got %lu sparse mode edges\n", partition_id, recv_outgoing_edges);
       #endif
     }
     compressed_outgoing_adj_vertices = new VertexId [sockets];
@@ -1037,9 +1134,18 @@ public:
         outgoing_adj_index[s_i][v_i+1] = compressed_outgoing_adj_index[s_i][p_v_i+1].index;
       }
       #ifdef PRINT_DEBUG_MESSAGES
-      printf("part(%d) E_%d has %lu sparse mode edges\n", partition_id, s_i, outgoing_edges[s_i]);
+      fprintf(stderr,"part(%d) E_%d has %lu sparse mode edges\n", partition_id, s_i, outgoing_edges[s_i]);
       #endif
       outgoing_adj_list[s_i] = (AdjUnit<EdgeData>*)numa_alloc_onnode(unit_size * outgoing_edges[s_i], s_i);
+      outgoing_adj_list_data_win[s_i] = new MPI_Win* [threads];
+      for (int t_i=0; t_i<threads; t_i++) {
+        outgoing_adj_list_data_win[s_i][t_i] = new MPI_Win;
+        if (partition_id >= FM::n_compute_partitions) {
+          MPI_Win_create(outgoing_adj_list[s_i], outgoing_edges[s_i]*unit_size, unit_size, MPI_INFO_NULL, MPI_COMM_WORLD, outgoing_adj_list_data_win[s_i][t_i]);
+        } else {
+          MPI_Win_create(NULL, 0, 1, MPI_INFO_NULL, MPI_COMM_WORLD, outgoing_adj_list_data_win[s_i][t_i]);                
+        }
+      }
     }
     {
       std::thread recv_thread_dst([&](){
@@ -1065,11 +1171,11 @@ public:
             VertexId src = recv_buffer[e_i].src;
             VertexId dst = recv_buffer[e_i].dst;
             assert(dst >= partition_offset[partition_id] && dst < partition_offset[partition_id+1]);
-            int dst_part = get_local_partition_id(dst);
-            EdgeId pos = __sync_fetch_and_add(&outgoing_adj_index[dst_part][src], 1);
-            outgoing_adj_list[dst_part][pos].neighbour = dst;
+            int dst_socket = get_local_partition_id(dst);
+            EdgeId pos = __sync_fetch_and_add(&outgoing_adj_index[dst_socket][src], 1);
+            outgoing_adj_list[dst_socket][pos].neighbour = dst;
             if (!std::is_same<EdgeData, Empty>::value) {
-              outgoing_adj_list[dst_part][pos].edge_data = recv_buffer[e_i].edge_data;
+              outgoing_adj_list[dst_socket][pos].edge_data = recv_buffer[e_i].edge_data;
             }
           }
         }
@@ -1120,6 +1226,7 @@ public:
     }
     MPI_Barrier(MPI_COMM_WORLD);
 
+    // preparing for dense mode graph data
     EdgeId recv_incoming_edges = 0;
     incoming_edges = new EdgeId [sockets];
     incoming_adj_index = new EdgeId* [sockets];
@@ -1201,7 +1308,7 @@ public:
       }
       recv_thread_src.join();
       #ifdef PRINT_DEBUG_MESSAGES
-      printf("machine(%d) got %lu dense mode edges\n", partition_id, recv_incoming_edges);
+      fprintf(stderr,"machine(%d) got %lu dense mode edges\n", partition_id, recv_incoming_edges);
       #endif
     }
     compressed_incoming_adj_vertices = new VertexId [sockets];
@@ -1234,7 +1341,7 @@ public:
         incoming_adj_index[s_i][v_i+1] = compressed_incoming_adj_index[s_i][p_v_i+1].index;
       }
       #ifdef PRINT_DEBUG_MESSAGES
-      printf("part(%d) E_%d has %lu dense mode edges\n", partition_id, s_i, incoming_edges[s_i]);
+      fprintf(stderr,"part(%d) E_%d has %lu dense mode edges\n", partition_id, s_i, incoming_edges[s_i]);
       #endif
       incoming_adj_list[s_i] = (AdjUnit<EdgeData>*)numa_alloc_onnode(unit_size * incoming_edges[s_i], s_i);
     }
@@ -1332,7 +1439,7 @@ public:
 
     #ifdef PRINT_DEBUG_MESSAGES
     if (partition_id==0) {
-      printf("preprocessing cost: %.2lf (s)\n", prep_time);
+      fprintf(stderr,"preprocessing cost: %.2lf (s)\n", prep_time);
     }
     #endif
   }
@@ -1421,6 +1528,10 @@ public:
       }
       thread_state[t_i]->status = WORKING;
     }
+
+    // before actually processing vertices on my partiton,
+    // do not need to initiate a MPI_send to request the vertex partition ranges of far memory partitions.
+
     #pragma omp parallel reduction(+:reducer)
     {
       R local_reducer = 0;
@@ -1440,7 +1551,7 @@ public:
       thread_state[thread_id]->status = STEALING;
       for (int t_offset=1;t_offset<threads;t_offset++) {
         int t_i = (thread_id + t_offset) % threads;
-        while (thread_state[t_i]->status!=STEALING) {
+        while (thread_state[t_i]->status < STEALING) {
           VertexId v_i = __sync_fetch_and_add(&thread_state[t_i]->curr, basic_chunk);
           if (v_i >= thread_state[t_i]->end) continue;
           unsigned long word = active->data[WORD_OFFSET(v_i)];
@@ -1455,13 +1566,61 @@ public:
       }
       reducer += local_reducer;
     }
+
+    // Equally split the workload for processing vertices mapped onto far memory partitions
+    // into each thread of each computing partitions.
+    for (int t_i=0;t_i<threads;t_i++) {
+      VertexId partition_size = partition_offset[partitions] - partition_offset[FM::n_compute_partitions];
+      thread_state[t_i]->curr = partition_offset[FM::n_compute_partitions] + partition_size / FM::n_compute_partitions / threads / basic_chunk * basic_chunk * (partition_id*threads + t_i);
+      thread_state[t_i]->end =  partition_offset[FM::n_compute_partitions] + partition_size / FM::n_compute_partitions / threads / basic_chunk * basic_chunk * (partition_id*threads + t_i + 1);
+      if (partition_id == FM::n_compute_partitions - 1 && t_i == threads - 1) {
+        thread_state[t_i]->end = partition_offset[partitions];
+      }
+      thread_state[t_i]->status = WORKING_REMOTE;
+    }
+
+    #pragma omp parallel reduction(+:reducer)
+    {
+      R local_reducer = 0;
+      int thread_id = omp_get_thread_num();
+      while (true) {
+        VertexId v_i = __sync_fetch_and_add(&thread_state[thread_id]->curr, basic_chunk);
+        if (v_i >= thread_state[thread_id]->end) break;
+        unsigned long word = active->data[WORD_OFFSET(v_i)];
+        while (word != 0) {
+          if (word & 1) {
+            local_reducer += process(v_i);
+          }
+          v_i++;
+          word = word >> 1;
+        }
+      }
+      thread_state[thread_id]->status = STEALING_REMOTE;
+      for (int t_offset=1;t_offset<threads;t_offset++) {
+        int t_i = (thread_id + t_offset) % threads;
+        while (thread_state[t_i]->status < STEALING_REMOTE) {
+          VertexId v_i = __sync_fetch_and_add(&thread_state[t_i]->curr, basic_chunk);
+          if (v_i >= thread_state[t_i]->end) continue;
+          unsigned long word = active->data[WORD_OFFSET(v_i)];
+          while (word != 0) {
+            if (word & 1) {
+              local_reducer += process(v_i);
+            }
+            v_i++;
+            word = word >> 1;
+          }
+        }
+      }
+      reducer += local_reducer;
+    }
+
     R global_reducer;
     MPI_Datatype dt = get_mpi_data_type<R>();
-    MPI_Allreduce(&reducer, &global_reducer, 1, dt, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(&reducer, &global_reducer, 1, dt, MPI_SUM, FM::compute_comm_world);
     stream_time += MPI_Wtime();
     #ifdef PRINT_DEBUG_MESSAGES
     if (partition_id==0) {
-      printf("process_vertices took %lf (s)\n", stream_time);
+      fprintf(stderr,"process_vertices took %lf (s)\n", stream_time);
     }
     #endif
     return global_reducer;
@@ -1505,34 +1664,40 @@ public:
       },
       active
     );
-    bool sparse = (active_edges < edges / 20);
+    size_t basic_chunk = 64;
+    // bool sparse = (active_edges < edges / 20);
+    bool sparse = true;
     if (sparse) {
-      for (int i=0;i<partitions;i++) {
+      VertexId delegated_vertices = (partition_offset[partitions] - partition_offset[FM::n_compute_partitions])/FM::n_compute_partitions/basic_chunk*(basic_chunk + 1);
+      for (int i=0;i<FM::n_compute_partitions;i++) {
         for (int s_i=0;s_i<sockets;s_i++) {
-          recv_buffer[i][s_i]->resize( sizeof(MsgUnit<M>) * (partition_offset[i+1] - partition_offset[i]) * sockets );
-          send_buffer[i][s_i]->resize( sizeof(MsgUnit<M>) * owned_vertices * sockets );
+          recv_buffer[i][s_i]->resize( sizeof(MsgUnit<M>) * ((partition_offset[i+1] - partition_offset[i]) + delegated_vertices) * sockets );
+          send_buffer[i][s_i]->resize( sizeof(MsgUnit<M>) * (owned_vertices + delegated_vertices) * sockets );
           send_buffer[i][s_i]->count = 0;
           recv_buffer[i][s_i]->count = 0;
+          send_buffer[i][s_i]->owned_count = 0;
+          recv_buffer[i][s_i]->owned_count = 0;
         }
       }
     } else {
-      for (int i=0;i<partitions;i++) {
+      for (int i=0;i<FM::n_compute_partitions;i++) {
         for (int s_i=0;s_i<sockets;s_i++) {
           recv_buffer[i][s_i]->resize( sizeof(MsgUnit<M>) * owned_vertices * sockets );
           send_buffer[i][s_i]->resize( sizeof(MsgUnit<M>) * (partition_offset[i+1] - partition_offset[i]) * sockets );
           send_buffer[i][s_i]->count = 0;
           recv_buffer[i][s_i]->count = 0;
+          send_buffer[i][s_i]->owned_count = 0;
+          recv_buffer[i][s_i]->owned_count = 0;
         }
       }
     }
-    size_t basic_chunk = 64;
     if (sparse) {
       #ifdef PRINT_DEBUG_MESSAGES
       if (partition_id==0) {
-        printf("sparse mode\n");
+        fprintf(stderr,"sparse mode\n");
       }
       #endif
-      int * recv_queue = new int [partitions];
+      int * recv_queue = new int [FM::n_compute_partitions];
       int recv_queue_size = 0;
       std::mutex recv_queue_mutex;
 
@@ -1553,26 +1718,67 @@ public:
       for (int t_i=0;t_i<threads;t_i++) {
         flush_local_send_buffer<M>(t_i);
       }
+      #ifdef PRINT_DEBUG_MESSAGES
+      fprintf(stderr,"%d done sparse signal.\n", partition_id);
+      #endif
+
+      for(int s_i=0; s_i<sockets; ++s_i) {
+        // const MsgUnit<M>& local_partition_done = {.vertex = VertexId(-1), .msg_data=M(0)};
+        // int pos = send_buffer[current_send_part_id][s_i]->count;
+        // send_buffer[current_send_part_id][s_i]->count += 1;
+        // memcpy(send_buffer[current_send_part_id][s_i]->data + sizeof(MsgUnit<M>) * pos, &local_partition_done, sizeof(MsgUnit<M>));
+        send_buffer[current_send_part_id][s_i]->owned_count = send_buffer[current_send_part_id][s_i]->count;
+      }
+
+      uint remote_signal_size = partition_offset[partitions] - partition_offset[FM::n_compute_partitions];
+      #ifdef PRINT_DEBUG_MESSAGES
+      fprintf(stderr, "%d trying to process delegated vertices [%d, %d).\n", partition_id,
+        partition_offset[FM::n_compute_partitions]+remote_signal_size/FM::n_compute_partitions/basic_chunk*basic_chunk*partition_id,
+        partition_offset[FM::n_compute_partitions]+remote_signal_size/FM::n_compute_partitions/basic_chunk*basic_chunk*(partition_id+1));
+      #endif
+
+      #pragma omp parallel for
+      for (VertexId begin_v_i=partition_offset[FM::n_compute_partitions]+remote_signal_size/FM::n_compute_partitions/basic_chunk*basic_chunk*partition_id;
+           begin_v_i<partition_offset[FM::n_compute_partitions]+remote_signal_size/FM::n_compute_partitions/basic_chunk*basic_chunk*(partition_id+1);
+           begin_v_i+=basic_chunk) {
+        VertexId v_i = begin_v_i;
+        // fprintf(stderr,"signal chunk starting at vertex %d.\n", v_i);
+        unsigned long word = active->data[WORD_OFFSET(v_i)];
+        while (word != 0) {
+          if (word & 1) {
+            sparse_signal(v_i);
+          }
+          v_i++;
+          word = word >> 1;
+        }
+      }
+      #pragma omp parallel for
+      for (int t_i=0;t_i<threads;t_i++) {
+        flush_local_send_buffer<M>(t_i);
+      }
+      #ifdef PRINT_DEBUG_MESSAGES
+      fprintf(stderr,"%d done delegated sparse signal.\n", partition_id);
+      #endif
       recv_queue[recv_queue_size] = partition_id;
       recv_queue_mutex.lock();
       recv_queue_size += 1;
       recv_queue_mutex.unlock();
       std::thread send_thread([&](){
-        for (int step=1;step<partitions;step++) {
-          int i = (partition_id - step + partitions) % partitions;
+        for (int step=1;step<FM::n_compute_partitions;step++) {
+          int i = (partition_id - step + FM::n_compute_partitions) % FM::n_compute_partitions;
           for (int s_i=0;s_i<sockets;s_i++) {
-            MPI_Send(send_buffer[partition_id][s_i]->data, sizeof(MsgUnit<M>) * send_buffer[partition_id][s_i]->count, MPI_CHAR, i, PassMessage, MPI_COMM_WORLD);
+            MPI_Send(send_buffer[partition_id][s_i]->data, sizeof(MsgUnit<M>) * send_buffer[partition_id][s_i]->count, MPI_CHAR, i, PassMessage, FM::compute_comm_world);
           }
         }
       });
       std::thread recv_thread([&](){
-        for (int step=1;step<partitions;step++) {
-          int i = (partition_id + step) % partitions;
+        for (int step=1;step<FM::n_compute_partitions;step++) {
+          int i = (partition_id + step) % FM::n_compute_partitions;
           for (int s_i=0;s_i<sockets;s_i++) {
             MPI_Status recv_status;
-            MPI_Probe(i, PassMessage, MPI_COMM_WORLD, &recv_status);
+            MPI_Probe(i, PassMessage, FM::compute_comm_world, &recv_status);
             MPI_Get_count(&recv_status, MPI_CHAR, &recv_buffer[i][s_i]->count);
-            MPI_Recv(recv_buffer[i][s_i]->data, recv_buffer[i][s_i]->count, MPI_CHAR, i, PassMessage, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Recv(recv_buffer[i][s_i]->data, recv_buffer[i][s_i]->count, MPI_CHAR, i, PassMessage, FM::compute_comm_world, MPI_STATUS_IGNORE);
             recv_buffer[i][s_i]->count /= sizeof(MsgUnit<M>);
           }
           recv_queue[recv_queue_size] = i;
@@ -1581,7 +1787,7 @@ public:
           recv_queue_mutex.unlock();
         }
       });
-      for (int step=0;step<partitions;step++) {
+      for (int step=0;step<FM::n_compute_partitions;step++) {
         while (true) {
           recv_queue_mutex.lock();
           bool condition = (recv_queue_size<=step);
@@ -1598,7 +1804,7 @@ public:
         }
         for (int s_i=0;s_i<sockets;s_i++) {
           MsgUnit<M> * buffer = (MsgUnit<M> *)used_buffer[s_i]->data;
-          size_t buffer_size = used_buffer[s_i]->count;
+          size_t buffer_size = used_buffer[s_i]->owned_count;
           for (int t_i=0;t_i<threads;t_i++) {
             // int s_i = get_socket_id(t_i);
             int s_j = get_socket_offset(t_i);
@@ -1626,6 +1832,8 @@ public:
               for (b_i=begin_b_i;b_i<end_b_i;b_i++) {
                 VertexId v_i = buffer[b_i].vertex;
                 M msg_data = buffer[b_i].msg_data;
+
+
                 if (outgoing_adj_bitmap[s_i]->get_bit(v_i)) {
                   local_reducer += sparse_slot(v_i, msg_data, VertexAdjList<EdgeData>(outgoing_adj_list[s_i] + outgoing_adj_index[s_i][v_i], outgoing_adj_list[s_i] + outgoing_adj_index[s_i][v_i+1]));
                 }
@@ -1656,9 +1864,138 @@ public:
             reducer += local_reducer;
           }
         }
+
+        #ifdef PRINT_DEBUG_MESSAGES
+        fprintf(stderr,"%d done sparse slot at step %d.\n", partition_id, step);
+        #endif
+        // handling received vertices delegated to partition i
+        for (int s_i=0;s_i<sockets;s_i++) {
+          MsgUnit<M> * buffer = ((MsgUnit<M> *)used_buffer[s_i]->data) + used_buffer[s_i]->owned_count;
+          size_t buffer_size = used_buffer[s_i]->count - used_buffer[s_i]->owned_count;
+          for (int t_i=0;t_i<threads;t_i++) {
+            // int s_i = get_socket_id(t_i);
+            int s_j = get_socket_offset(t_i);
+            VertexId partition_size = buffer_size;
+            thread_state[t_i]->curr = partition_size / threads_per_socket  / basic_chunk * basic_chunk * s_j;
+            thread_state[t_i]->end = partition_size / threads_per_socket / basic_chunk * basic_chunk * (s_j+1);
+            if (s_j == threads_per_socket - 1) {
+              thread_state[t_i]->end = buffer_size;
+            }
+            thread_state[t_i]->status = WORKING;
+          }
+
+          #pragma omp parallel reduction(+:reducer)
+          {
+            R local_reducer = 0;
+            int thread_id = omp_get_thread_num();
+            int s_i = get_socket_id(thread_id);
+            while (true) {
+              VertexId b_i = __sync_fetch_and_add(&thread_state[thread_id]->curr, basic_chunk);
+              if (b_i >= thread_state[thread_id]->end) break;
+              VertexId begin_b_i = b_i;
+              VertexId end_b_i = b_i + basic_chunk;
+              if (end_b_i>thread_state[thread_id]->end) {
+                end_b_i = thread_state[thread_id]->end;
+              }
+              for (b_i=begin_b_i;b_i<end_b_i;b_i++) {
+                VertexId v_i = buffer[b_i].vertex;
+                M msg_data = buffer[b_i].msg_data;
+
+                // now v_i cannot be on partition i
+                // since partition i's owned vertices
+                // have been processed before.
+                assert(get_partition_id(v_i) != i);
+                if (v_i % FM::n_compute_partitions == partition_id) {
+                  // send request to all far memory nodes.
+                  for (uint remote_node = FM::n_compute_partitions; remote_node < partitions; ++remote_node) {
+                    unsigned long word;
+                    MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_bitmap_data_win[s_i][thread_id]);
+                    MPI_Get(&word, 1, MPI_UNSIGNED_LONG, remote_node, WORD_OFFSET(v_i), 1, MPI_UNSIGNED_LONG, *outgoing_adj_bitmap_data_win[s_i][thread_id]);
+                    MPI_Win_unlock(remote_node, *outgoing_adj_bitmap_data_win[s_i][thread_id]);
+                    if (word & (1ul<<BIT_OFFSET(v_i))) {
+                      // retrieve index and index+1
+                      EdgeId indices[2];
+                      MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_index_data_win[s_i][thread_id]);
+                      MPI_Get(&indices, 2, MPI_UNSIGNED_LONG, remote_node, v_i, 2, MPI_UNSIGNED_LONG, *outgoing_adj_index_data_win[s_i][thread_id]);
+                      MPI_Win_unlock(remote_node, *outgoing_adj_index_data_win[s_i][thread_id]);
+                      // retrieve corresponding list values between [index, index+1)
+                      EdgeId n_adj_edges = indices[1]-indices[0];
+                      std::vector<AdjUnit<EdgeData>> locally_cached_adj(n_adj_edges+1);
+                      MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_list_data_win[s_i][thread_id]);
+                      MPI_Get(&locally_cached_adj[0], n_adj_edges*unit_size, MPI_CHAR, 
+                              remote_node, indices[0], n_adj_edges*unit_size, MPI_CHAR, *outgoing_adj_list_data_win[s_i][thread_id]);
+                      MPI_Win_unlock(remote_node, *outgoing_adj_list_data_win[s_i][thread_id]);
+                      local_reducer += sparse_slot(v_i, msg_data, VertexAdjList<EdgeData>(&locally_cached_adj[0], &locally_cached_adj[n_adj_edges]));
+                    }
+                  }
+                }
+                // if (outgoing_adj_bitmap[s_i]->get_bit(v_i)) {
+                //   local_reducer += sparse_slot(v_i, msg_data, VertexAdjList<EdgeData>(outgoing_adj_list[s_i] + outgoing_adj_index[s_i][v_i], outgoing_adj_list[s_i] + outgoing_adj_index[s_i][v_i+1]));
+                // }
+              }
+            }
+            thread_state[thread_id]->status = STEALING;
+            for (int t_offset=1;t_offset<threads;t_offset++) {
+              int t_i = (thread_id + t_offset) % threads;
+              if (thread_state[t_i]->status==STEALING) continue;
+              while (true) {
+                VertexId b_i = __sync_fetch_and_add(&thread_state[t_i]->curr, basic_chunk);
+                if (b_i >= thread_state[t_i]->end) break;
+                VertexId begin_b_i = b_i;
+                VertexId end_b_i = b_i + basic_chunk;
+                if (end_b_i>thread_state[t_i]->end) {
+                  end_b_i = thread_state[t_i]->end;
+                }
+                int s_i = get_socket_id(t_i);
+                for (b_i=begin_b_i;b_i<end_b_i;b_i++) {
+                  VertexId v_i = buffer[b_i].vertex;
+                  M msg_data = buffer[b_i].msg_data;
+                  assert(get_partition_id(v_i) != i);
+                  if (v_i % FM::n_compute_partitions == partition_id) {
+                    // send request to all far memory nodes.
+                    for (uint remote_node = FM::n_compute_partitions; remote_node < partitions; ++remote_node) {
+                      unsigned long word;
+                      MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_bitmap_data_win[s_i][thread_id]);
+                      MPI_Get(&word, 1, MPI_UNSIGNED_LONG, remote_node, WORD_OFFSET(v_i), 1, MPI_UNSIGNED_LONG, *outgoing_adj_bitmap_data_win[s_i][thread_id]);
+                      MPI_Win_unlock(remote_node, *outgoing_adj_bitmap_data_win[s_i][thread_id]);
+                      if (word & (1ul<<BIT_OFFSET(v_i))) {
+                        // retrieve index and index+1
+                        EdgeId indices[2];
+                        MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_index_data_win[s_i][thread_id]);
+                        MPI_Get(&indices, 2, MPI_UNSIGNED_LONG, remote_node, v_i, 2, MPI_UNSIGNED_LONG, *outgoing_adj_index_data_win[s_i][thread_id]);
+                        MPI_Win_unlock(remote_node, *outgoing_adj_index_data_win[s_i][thread_id]);
+                        // retrieve corresponding list values between [index, index+1)
+                        EdgeId n_adj_edges = indices[1]-indices[0];
+                        std::vector<AdjUnit<EdgeData>> locally_cached_adj(n_adj_edges+1);
+                        MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_list_data_win[s_i][thread_id]);
+                        MPI_Get(&locally_cached_adj[0], n_adj_edges*unit_size, MPI_CHAR, 
+                                remote_node, indices[0], n_adj_edges*unit_size, MPI_CHAR, *outgoing_adj_list_data_win[s_i][thread_id]);
+                        MPI_Win_unlock(remote_node, *outgoing_adj_list_data_win[s_i][thread_id]);
+                        local_reducer += sparse_slot(v_i, msg_data, VertexAdjList<EdgeData>(&locally_cached_adj[0], &locally_cached_adj[n_adj_edges]));
+                      }
+                    }
+                  }
+                  // if (outgoing_adj_bitmap[s_i]->get_bit(v_i)) {
+                  //   local_reducer += sparse_slot(v_i, msg_data, VertexAdjList<EdgeData>(outgoing_adj_list[s_i] + outgoing_adj_index[s_i][v_i], outgoing_adj_list[s_i] + outgoing_adj_index[s_i][v_i+1]));
+                  // }
+                }
+              }
+            }
+            reducer += local_reducer;
+          }
+        }
+        #ifdef PRINT_DEBUG_MESSAGES
+        fprintf(stderr,"%d done delegated sparse slot at step %d.\n", partition_id, step);
+        #endif
       }
       send_thread.join();
+        #ifdef PRINT_DEBUG_MESSAGES
+        fprintf(stderr,"%d sender thread joined.\n", partition_id);
+        #endif
       recv_thread.join();
+        #ifdef PRINT_DEBUG_MESSAGES
+        fprintf(stderr,"%d receiver thread joined.\n", partition_id);
+        #endif
       delete [] recv_queue;
     } else {
       // dense selective bitmap
@@ -1683,13 +2020,13 @@ public:
         sync_time += get_time();
         #ifdef PRINT_DEBUG_MESSAGES
         if (partition_id==0) {
-          printf("sync_time = %lf\n", sync_time);
+          fprintf(stderr,"sync_time = %lf\n", sync_time);
         }
         #endif
       }
       #ifdef PRINT_DEBUG_MESSAGES
       if (partition_id==0) {
-        printf("dense mode\n");
+        fprintf(stderr,"dense mode\n");
       }
       #endif
       int * send_queue = new int [partitions];
@@ -1855,11 +2192,11 @@ public:
 
     R global_reducer;
     MPI_Datatype dt = get_mpi_data_type<R>();
-    MPI_Allreduce(&reducer, &global_reducer, 1, dt, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(&reducer, &global_reducer, 1, dt, MPI_SUM, FM::compute_comm_world);
     stream_time += MPI_Wtime();
     #ifdef PRINT_DEBUG_MESSAGES
     if (partition_id==0) {
-      printf("process_edges took %lf (s)\n", stream_time);
+      fprintf(stderr,"process_edges took %lf (s)\n", stream_time);
     }
     #endif
     return global_reducer;

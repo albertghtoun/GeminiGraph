@@ -108,18 +108,21 @@ int main(int argc, char ** argv) {
   MPI_Instance mpi(&argc, &argv);
 
   if (argc<4) {
-    printf("sssp [file] [vertices] [root]\n");
+    printf("sssp [file] [vertices] [root] [n_compute]\n");
     exit(-1);
   }
 
+  FM::init_fm_runtime(std::atoi(argv[4]));
+  
   Graph<Weight> * graph;
   graph = new Graph<Weight>();
   graph->load_directed(argv[1], std::atoi(argv[2]));
   VertexId root = std::atoi(argv[3]);
 
-  compute(graph, root);
+  fprintf(stderr, "here.\n");
+  FM::compute(std::function<void(Graph<Weight> * graph, VertexId)>(compute), graph->partition_id, graph, root);
   for (int run=0;run<5;run++) {
-    compute(graph, root);
+    FM::compute(std::function<void(Graph<Weight> * graph, VertexId)>(compute), graph->partition_id, graph, root);
   }
 
   delete graph;

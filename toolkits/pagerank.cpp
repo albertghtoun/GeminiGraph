@@ -132,18 +132,19 @@ int main(int argc, char ** argv) {
   MPI_Instance mpi(&argc, &argv);
 
   if (argc<4) {
-    printf("pagerank [file] [vertices] [iterations]\n");
+    printf("pagerank [file] [vertices] [iterations] [n_compute]\n");
     exit(-1);
   }
+
+  FM::init_fm_runtime(std::atoi(argv[4]));
 
   Graph<Empty> * graph;
   graph = new Graph<Empty>();
   graph->load_directed(argv[1], std::atoi(argv[2]));
   int iterations = std::atoi(argv[3]);
-
-  compute(graph, iterations);
+  FM::compute(std::function<void(Graph<Empty>*, int)>(compute), graph->partition_id, graph, iterations);
   for (int run=0;run<5;run++) {
-    compute(graph, iterations);
+    FM::compute(std::function<void(Graph<Empty>*, int)>(compute), graph->partition_id, graph, iterations);
   }
 
   delete graph;
