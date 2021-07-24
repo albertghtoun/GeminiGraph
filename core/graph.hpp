@@ -246,8 +246,15 @@ public:
   // fill a vertex array with a specific value
   template<typename T>
   void fill_vertex_array(T * array, T value) {
+    // fill out the vertex array in my partition.
     #pragma omp parallel for
     for (VertexId v_i=partition_offset[partition_id];v_i<partition_offset[partition_id+1];v_i++) {
+      array[v_i] = value;
+    }
+
+    // fill out the deligated portion of the vertex array.
+    #pragma omp parallel for
+    for (VertexId v_i=partition_offset[FM::n_compute_partitions];v_i<partition_offset[partitions];v_i++) {
       array[v_i] = value;
     }
   }
@@ -1723,35 +1730,59 @@ public:
       #endif
 
       for(int s_i=0; s_i<sockets; ++s_i) {
-        // const MsgUnit<M>& local_partition_done = {.vertex = VertexId(-1), .msg_data=M(0)};
-        // int pos = send_buffer[current_send_part_id][s_i]->count;
-        // send_buffer[current_send_part_id][s_i]->count += 1;
-        // memcpy(send_buffer[current_send_part_id][s_i]->data + sizeof(MsgUnit<M>) * pos, &local_partition_done, sizeof(MsgUnit<M>));
         send_buffer[current_send_part_id][s_i]->owned_count = send_buffer[current_send_part_id][s_i]->count;
       }
 
-      uint remote_signal_size = partition_offset[partitions] - partition_offset[FM::n_compute_partitions];
       #ifdef PRINT_DEBUG_MESSAGES
-      fprintf(stderr, "%d trying to process delegated vertices [%d, %d).\n", partition_id,
-        partition_offset[FM::n_compute_partitions]+remote_signal_size/FM::n_compute_partitions/basic_chunk*basic_chunk*partition_id,
-        partition_offset[FM::n_compute_partitions]+remote_signal_size/FM::n_compute_partitions/basic_chunk*basic_chunk*(partition_id+1));
+      for (int i = 0; i <= partitions; ++i) {
+        fprintf(stderr, "partition %d offset: %d\n", i, partition_offset[i]);
+      }
       #endif
 
-      #pragma omp parallel for
-      for (VertexId begin_v_i=partition_offset[FM::n_compute_partitions]+remote_signal_size/FM::n_compute_partitions/basic_chunk*basic_chunk*partition_id;
-           begin_v_i<partition_offset[FM::n_compute_partitions]+remote_signal_size/FM::n_compute_partitions/basic_chunk*basic_chunk*(partition_id+1);
-           begin_v_i+=basic_chunk) {
-        VertexId v_i = begin_v_i;
-        // fprintf(stderr,"signal chunk starting at vertex %d.\n", v_i);
-        unsigned long word = active->data[WORD_OFFSET(v_i)];
-        while (word != 0) {
-          if (word & 1) {
-            sparse_signal(v_i);
+      for (int i = FM::n_compute_partitions; i < partitions; ++i) {
+        uint remote_signal_size = partition_offset[i+1] - partition_offset[i];
+        uint start = partition_offset[i]+remote_signal_size/FM::n_compute_partitions/basic_chunk*basic_chunk*partition_id;
+        uint end = partition_offset[i]+remote_signal_size/FM::n_compute_partitions/basic_chunk*basic_chunk*(partition_id+1);
+        if (i == partitions-1) {
+          end = partition_offset[partitions];
+        }
+        #ifdef PRINT_DEBUG_MESSAGES
+        fprintf(stderr, "%d trying to process delegated vertices [%d, %d) from partition %d.\n", partition_id,
+          start,
+          end,
+          i);
+        #endif
+        #pragma omp parallel for
+        for (VertexId begin_v_i=start; begin_v_i<end; begin_v_i+=basic_chunk) {
+          VertexId v_i = begin_v_i;
+          // fprintf(stderr,"signal chunk starting at vertex %d.\n", v_i);
+          unsigned long word = active->data[WORD_OFFSET(v_i)];
+          while (word != 0) {
+            if (word & 1) {
+              sparse_signal(v_i);
+            }
+            v_i++;
+            word = word >> 1;
           }
-          v_i++;
-          word = word >> 1;
         }
       }
+
+      // uint remote_signal_size = partition_offset[partitions] - partition_offset[FM::n_compute_partitions];
+      // #pragma omp parallel for
+      // for (VertexId begin_v_i=partition_offset[FM::n_compute_partitions]+remote_signal_size/FM::n_compute_partitions/basic_chunk*basic_chunk*partition_id;
+      //      begin_v_i<partition_offset[FM::n_compute_partitions]+remote_signal_size/FM::n_compute_partitions/basic_chunk*basic_chunk*(partition_id+1);
+      //      begin_v_i+=basic_chunk) {
+      //   VertexId v_i = begin_v_i;
+      //   // fprintf(stderr,"signal chunk starting at vertex %d.\n", v_i);
+      //   unsigned long word = active->data[WORD_OFFSET(v_i)];
+      //   while (word != 0) {
+      //     if (word & 1) {
+      //       sparse_signal(v_i);
+      //     }
+      //     v_i++;
+      //     word = word >> 1;
+      //   }
+      // }
       #pragma omp parallel for
       for (int t_i=0;t_i<threads;t_i++) {
         flush_local_send_buffer<M>(t_i);
