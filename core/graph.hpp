@@ -1112,7 +1112,7 @@ public:
         MPI_Send(&c, 1, MPI_CHAR, i, ShuffleGraph, MPI_COMM_WORLD);
       }
       recv_thread_dst.join();
-      #ifdef PRINT_DEBUG_MESSAGES
+      // #ifdef PRINT_DEBUG_MESSAGES
       fprintf(stderr,"machine(%d) got %lu sparse mode edges\n", partition_id, recv_outgoing_edges);
       #endif
     }
@@ -1683,7 +1683,7 @@ public:
       for (int i=0;i<partitions;i++) {
         for (int s_i=0;s_i<sockets;s_i++) {
           recv_buffer[i][s_i]->resize( sizeof(MsgUnit<M>) * ((partition_offset[i+1] - partition_offset[i])) * sockets );
-          send_buffer[i][s_i]->resize( sizeof(MsgUnit<M>) * (owned_vertices) * sockets );
+          send_buffer[i][s_i]->resize( sizeof(MsgUnit<M>) * (vertices) * sockets );
           send_buffer[i][s_i]->count = 0;
           recv_buffer[i][s_i]->count = 0;
           send_buffer[i][s_i]->owned_count = 0;
@@ -1739,6 +1739,10 @@ public:
 
       for(int s_i=0; s_i<sockets; ++s_i) {
         send_buffer[current_send_part_id][s_i]->owned_count = send_buffer[current_send_part_id][s_i]->count;
+        #ifdef PRINT_DEBUG_MESSAGES
+        fprintf(stderr, "partition %d socket %d ownded %d vertices.\n", current_send_part_id, s_i, 
+                        send_buffer[current_send_part_id][s_i]->owned_count);
+        #endif
       }
 
       #ifdef PRINT_DEBUG_MESSAGES
@@ -1806,10 +1810,13 @@ public:
 
           for(int s_i=0; s_i<sockets; ++s_i) {
             send_buffer[current_send_part_id][s_i]->delegated_start[i] = send_buffer[current_send_part_id][s_i]->count;
+            #ifdef PRINT_DEBUG_MESSAGES
             fprintf(stderr, "send_buffer delegated_start_%d = %d\n", i, send_buffer[current_send_part_id][s_i]->delegated_start[i]);
+            #endif
           }
           // emit delegated vertices on behalf on partition i to recv_buffer, 
           // instead of actually receiving from it.
+          #pragma omp parallel for
           for (VertexId begin_v_i=partition_offset[i];begin_v_i<partition_offset[i+1];begin_v_i+=basic_chunk) {
             VertexId v_i = begin_v_i;
             unsigned long word = active->data[WORD_OFFSET(v_i)];
@@ -1831,7 +1838,9 @@ public:
 
       for(int s_i=0; s_i<sockets; ++s_i) {
         send_buffer[current_send_part_id][s_i]->delegated_start[partitions] = send_buffer[current_send_part_id][s_i]->count;
+        #ifdef PRINT_DEBUG_MESSAGES
         fprintf(stderr, "send_buffer delegated_start_%d = %d\n", partitions, send_buffer[current_send_part_id][s_i]->delegated_start[partitions]);
+        #endif
       }
       // #pragma omp parallel for
       // for (int t_i=0;t_i<threads;t_i++) {
@@ -1904,7 +1913,9 @@ public:
         for (int s_i=0;s_i<sockets;s_i++) {
           MsgUnit<M> * buffer = (MsgUnit<M> *)used_buffer[s_i]->data;
           size_t buffer_size = used_buffer[s_i]->owned_count;
+          #ifdef PRINT_DEBUG_MESSAGES
           printf("local sparse slot buffer_size = %d\n", buffer_size);
+          #endif
           for (int t_i=0;t_i<threads;t_i++) {
             // int s_i = get_socket_id(t_i);
             int s_j = get_socket_offset(t_i);
@@ -1976,7 +1987,9 @@ public:
             // size_t buffer_size = used_buffer[s_i]->count - used_buffer[s_i]->owned_count;
             MsgUnit<M> * buffer = (MsgUnit<M> *)used_buffer[s_i]->data;
             size_t buffer_size = used_buffer[s_i]->owned_count;
-            // printf("remote sparse slot buffer_size = %d\n", buffer_size);
+            #ifdef PRINT_DEBUG_MESSAGES
+            printf("remote sparse slot buffer_size = %d\n", buffer_size);
+            #endif
             for (int t_i=0;t_i<threads;t_i++) {
               // int s_i = get_socket_id(t_i);
               int s_j = get_socket_offset(t_i);
@@ -2192,7 +2205,7 @@ public:
               }
               reducer += local_reducer;
             }
-          }          
+          }
         }
       }
       send_thread.join();
