@@ -159,7 +159,7 @@ public:
   MessageBuffer *** recv_buffer; // MessageBuffer* [partitions] [sockets]; numa-aware
 
   Graph() {
-    threads = 1; // numa_num_configured_cpus();
+    threads = numa_num_configured_cpus();
     sockets = 1; // numa_num_configured_nodes();
     threads_per_socket = threads / sockets;
 
@@ -173,6 +173,9 @@ public:
         MPI_Win_free(outgoing_adj_bitmap_data_win[s_i][t_i]);
         MPI_Win_free(outgoing_adj_index_data_win[s_i][t_i]);
         MPI_Win_free(outgoing_adj_list_data_win[s_i][t_i]);
+        MPI_Win_free(incoming_adj_bitmap_data_win[s_i][t_i]);
+        MPI_Win_free(incoming_adj_index_data_win[s_i][t_i]);
+        MPI_Win_free(incoming_adj_list_data_win[s_i][t_i]);
       }
     }
   }
@@ -879,7 +882,7 @@ public:
     for (VertexId v_i=0;v_i<vertices;v_i++) {
       out_degree[v_i] = 0;
     }
-    in_degree = alloc_vertex_array<VertexId>();
+    in_degree = alloc_interleaved_vertex_array<VertexId>();
     for (VertexId v_i=0;v_i<vertices;v_i++) {
       in_degree[v_i] = 0;
     }
@@ -1104,7 +1107,7 @@ public:
         MPI_Send(&c, 1, MPI_CHAR, i, ShuffleGraph, MPI_COMM_WORLD);
       }
       recv_thread_dst.join();
-      // #ifdef PRINT_DEBUG_MESSAGES
+      #ifdef PRINT_DEBUG_MESSAGES
       fprintf(stderr,"machine(%d) got %lu sparse mode edges\n", partition_id, recv_outgoing_edges);
       #endif
     }
