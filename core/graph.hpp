@@ -131,11 +131,13 @@ public:
   Bitmap ** incoming_adj_bitmap;
   EdgeId ** incoming_adj_index; // EdgeId [sockets] [vertices+1]; numa-aware
   AdjUnit<EdgeData> ** incoming_adj_list; // AdjUnit<EdgeData> [sockets] [vertices+1]; numa-aware
+  MPI_Win*** incoming_adj_bitmap_data_win;
+  MPI_Win*** incoming_adj_index_data_win;
+  MPI_Win*** incoming_adj_list_data_win;
 
   Bitmap ** outgoing_adj_bitmap;
   EdgeId ** outgoing_adj_index; // EdgeId [sockets] [vertices+1]; numa-aware
   AdjUnit<EdgeData> ** outgoing_adj_list; // AdjUnit<EdgeData> [sockets] [vertices+1]; numa-aware
-  // MPI_Win outgoing_adj_bitmap_win, outgoing_adj_index_win, outgoing_adj_list_win;
   MPI_Win*** outgoing_adj_bitmap_data_win; 
   MPI_Win*** outgoing_adj_index_data_win;
   MPI_Win*** outgoing_adj_list_data_win;
@@ -525,12 +527,6 @@ public:
       }
     }
 
-    // VertexId * filtered_out_degree = alloc_vertex_array<VertexId>();
-    // for (VertexId v_i=partition_offset[partition_id];v_i<partition_offset[partition_id+1];v_i++) {
-    //   filtered_out_degree[v_i] = out_degree[v_i];
-    // }
-    // numa_free(out_degree, sizeof(VertexId) * vertices);
-    // out_degree = filtered_out_degree;
     in_degree = out_degree;
 
     int * buffered_edges = new int [partitions];
@@ -837,8 +833,11 @@ public:
     std::swap(out_degree, in_degree);
     std::swap(outgoing_edges, incoming_edges);
     std::swap(outgoing_adj_index, incoming_adj_index);
+    std::swap(outgoing_adj_index_data_win, incoming_adj_index_data_win);
     std::swap(outgoing_adj_bitmap, incoming_adj_bitmap);
+    std::swap(outgoing_adj_bitmap_data_win, incoming_adj_bitmap_data_win);
     std::swap(outgoing_adj_list, incoming_adj_list);
+    std::swap(outgoing_adj_list_data_win, incoming_adj_list_data_win);
     std::swap(tuned_chunks_dense, tuned_chunks_sparse);
     std::swap(compressed_outgoing_adj_vertices, compressed_incoming_adj_vertices);
     std::swap(compressed_outgoing_adj_index, compressed_incoming_adj_index);
@@ -880,6 +879,10 @@ public:
     for (VertexId v_i=0;v_i<vertices;v_i++) {
       out_degree[v_i] = 0;
     }
+    in_degree = alloc_vertex_array<VertexId>();
+    for (VertexId v_i=0;v_i<vertices;v_i++) {
+      in_degree[v_i] = 0;
+    }
     assert(lseek(fin, read_offset, SEEK_SET)==read_offset);
     read_bytes = 0;
     while (read_bytes < bytes_to_read) {
@@ -897,9 +900,11 @@ public:
         VertexId src = read_edge_buffer[e_i].src;
         VertexId dst = read_edge_buffer[e_i].dst;
         __sync_fetch_and_add(&out_degree[src], 1);
+        __sync_fetch_and_add(&in_degree[dst], 1);
       }
     }
     MPI_Allreduce(MPI_IN_PLACE, out_degree, vertices, vid_t, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(MPI_IN_PLACE, in_degree, vertices, vid_t, MPI_SUM, MPI_COMM_WORLD);
 
     // locality-aware chunking
     partition_offset = new VertexId [partitions + 1];
@@ -985,18 +990,6 @@ public:
       }
     }
 
-    // VertexId * filtered_out_degree = alloc_vertex_array<VertexId>();
-    // for (VertexId v_i=partition_offset[partition_id];v_i<partition_offset[partition_id+1];v_i++) {
-      // filtered_out_degree[v_i] = out_degree[v_i];
-    // }
-    // numa_free(out_degree, sizeof(VertexId) * vertices);
-    // out_degree = filtered_out_degree;
-    // TODO (chao): in_degree must be filled out with vertices number of in_degree. 
-    in_degree = alloc_vertex_array<VertexId>();
-    for (VertexId v_i=partition_offset[partition_id];v_i<partition_offset[partition_id+1];v_i++) {
-      in_degree[v_i] = 0;
-    }
-
     int * buffered_edges = new int [partitions];
     std::vector<char> * send_buffer = new std::vector<char> [partitions];
     for (int i=0;i<partitions;i++) {
@@ -1071,7 +1064,6 @@ public:
               outgoing_adj_index[dst_socket][src] = 0;
             }
             __sync_fetch_and_add(&outgoing_adj_index[dst_socket][src], 1);
-            __sync_fetch_and_add(&in_degree[dst], 1);
           }
           recv_outgoing_edges += recv_edges;
         }
@@ -1244,10 +1236,36 @@ public:
     incoming_adj_index = new EdgeId* [sockets];
     incoming_adj_list = new AdjUnit<EdgeData>* [sockets];
     incoming_adj_bitmap = new Bitmap * [sockets];
+    incoming_adj_index_data_win = new MPI_Win** [sockets];
+    incoming_adj_bitmap_data_win = new MPI_Win** [sockets];
+    incoming_adj_list_data_win = new MPI_Win** [sockets];
     for (int s_i=0;s_i<sockets;s_i++) {
       incoming_adj_bitmap[s_i] = new Bitmap (vertices);
       incoming_adj_bitmap[s_i]->clear();
       incoming_adj_index[s_i] = (EdgeId*)numa_alloc_onnode(sizeof(EdgeId) * (vertices+1), s_i);
+    }
+    if (partition_id >= FM::n_compute_partitions) {
+      for (int s_i=0; s_i<sockets; s_i++) {
+        incoming_adj_bitmap_data_win[s_i] = new MPI_Win* [threads];
+        incoming_adj_index_data_win[s_i] = new MPI_Win* [threads];
+        for (int t_i=0; t_i<threads; t_i++) {
+          incoming_adj_bitmap_data_win[s_i][t_i] = new MPI_Win;
+          MPI_Win_create(incoming_adj_bitmap[s_i]->data, (WORD_OFFSET(vertices)+1)*sizeof(unsigned long), sizeof(unsigned long), MPI_INFO_NULL, MPI_COMM_WORLD, incoming_adj_bitmap_data_win[s_i][t_i]);
+          incoming_adj_index_data_win[s_i][t_i] = new MPI_Win;
+          MPI_Win_create(incoming_adj_index[s_i], (vertices+1)*sizeof(EdgeId), sizeof(EdgeId), MPI_INFO_NULL, MPI_COMM_WORLD, incoming_adj_index_data_win[s_i][t_i]);
+        }
+      }
+    } else {
+      for (int s_i=0; s_i<sockets; s_i++) {
+        incoming_adj_bitmap_data_win[s_i] = new MPI_Win* [threads];
+        incoming_adj_index_data_win[s_i] = new MPI_Win* [threads];
+        for (int t_i=0; t_i<threads; t_i++) {
+          incoming_adj_bitmap_data_win[s_i][t_i] = new MPI_Win;
+          MPI_Win_create(NULL, 0, 1, MPI_INFO_NULL, MPI_COMM_WORLD, incoming_adj_bitmap_data_win[s_i][t_i]);
+          incoming_adj_index_data_win[s_i][t_i] = new MPI_Win;
+          MPI_Win_create(NULL, 0, 1, MPI_INFO_NULL, MPI_COMM_WORLD, incoming_adj_index_data_win[s_i][t_i]);
+        }
+      }
     }
     {
       std::thread recv_thread_src([&](){
@@ -1273,12 +1291,12 @@ public:
             VertexId src = recv_buffer[e_i].src;
             VertexId dst = recv_buffer[e_i].dst;
             assert(src >= partition_offset[partition_id] && src < partition_offset[partition_id+1]);
-            int src_part = get_local_partition_id(src);
-            if (!incoming_adj_bitmap[src_part]->get_bit(dst)) {
-              incoming_adj_bitmap[src_part]->set_bit(dst);
-              incoming_adj_index[src_part][dst] = 0;
+            int src_socket = get_local_partition_id(src);
+            if (!incoming_adj_bitmap[src_socket]->get_bit(dst)) {
+              incoming_adj_bitmap[src_socket]->set_bit(dst);
+              incoming_adj_index[src_socket][dst] = 0;
             }
-            __sync_fetch_and_add(&incoming_adj_index[src_part][dst], 1);
+            __sync_fetch_and_add(&incoming_adj_index[src_socket][dst], 1);
           }
           recv_incoming_edges += recv_edges;
         }
@@ -1356,6 +1374,15 @@ public:
       fprintf(stderr,"part(%d) E_%d has %lu dense mode edges\n", partition_id, s_i, incoming_edges[s_i]);
       #endif
       incoming_adj_list[s_i] = (AdjUnit<EdgeData>*)numa_alloc_onnode(unit_size * incoming_edges[s_i], s_i);
+      incoming_adj_list_data_win[s_i] = new MPI_Win* [threads];
+      for (int t_i=0; t_i<threads; t_i++) {
+        incoming_adj_list_data_win[s_i][t_i] = new MPI_Win;
+        if (partition_id >= FM::n_compute_partitions) {
+          MPI_Win_create(incoming_adj_list[s_i], incoming_edges[s_i]*unit_size, unit_size, MPI_INFO_NULL, MPI_COMM_WORLD, incoming_adj_list_data_win[s_i][t_i]);
+        } else {
+          MPI_Win_create(NULL, 0, 1, MPI_INFO_NULL, MPI_COMM_WORLD, incoming_adj_list_data_win[s_i][t_i]);
+        }
+      }
     }
     {
       std::thread recv_thread_src([&](){
@@ -1381,11 +1408,11 @@ public:
             VertexId src = recv_buffer[e_i].src;
             VertexId dst = recv_buffer[e_i].dst;
             assert(src >= partition_offset[partition_id] && src < partition_offset[partition_id+1]);
-            int src_part = get_local_partition_id(src);
-            EdgeId pos = __sync_fetch_and_add(&incoming_adj_index[src_part][dst], 1);
-            incoming_adj_list[src_part][pos].neighbour = src;
+            int src_socket = get_local_partition_id(src);
+            EdgeId pos = __sync_fetch_and_add(&incoming_adj_index[src_socket][dst], 1);
+            incoming_adj_list[src_socket][pos].neighbour = src;
             if (!std::is_same<EdgeData, Empty>::value) {
-              incoming_adj_list[src_part][pos].edge_data = recv_buffer[e_i].edge_data;
+              incoming_adj_list[src_socket][pos].edge_data = recv_buffer[e_i].edge_data;
             }
           }
         }
