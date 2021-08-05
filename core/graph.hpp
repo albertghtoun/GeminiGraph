@@ -1609,40 +1609,94 @@ public:
       reducer += local_reducer;
     }
 
+    #ifdef PRINT_DEBUG_MESSAGES
+    fprintf(stderr, "%d: reducer = %d\n", partition_id, reducer);
+    #endif
     // Equally split the workload for processing vertices mapped onto far memory partitions
     // into each thread of each computing partitions.
-    for (int t_i=0;t_i<threads;t_i++) {
-      VertexId partition_size = partition_offset[partitions] - partition_offset[FM::n_compute_partitions];
-      thread_state[t_i]->curr = partition_offset[FM::n_compute_partitions] + partition_size / FM::n_compute_partitions / threads / basic_chunk * basic_chunk * (partition_id*threads + t_i);
-      thread_state[t_i]->end =  partition_offset[FM::n_compute_partitions] + partition_size / FM::n_compute_partitions / threads / basic_chunk * basic_chunk * (partition_id*threads + t_i + 1);
-      if (partition_id == FM::n_compute_partitions - 1 && t_i == threads - 1) {
-        thread_state[t_i]->end = partition_offset[partitions];
+    // for (int t_i=0;t_i<threads;t_i++) {
+    //   VertexId partition_size = partition_offset[partitions] - partition_offset[FM::n_compute_partitions];
+    //   thread_state[t_i]->curr = partition_offset[FM::n_compute_partitions] + partition_size / FM::n_compute_partitions / threads / basic_chunk * basic_chunk * (partition_id*threads + t_i);
+    //   thread_state[t_i]->end =  partition_offset[FM::n_compute_partitions] + partition_size / FM::n_compute_partitions / threads / basic_chunk * basic_chunk * (partition_id*threads + t_i + 1);
+    //   if (partition_id == FM::n_compute_partitions - 1 && t_i == threads - 1) {
+    //     thread_state[t_i]->end = partition_offset[partitions];
+    //   }
+    //   thread_state[t_i]->status = WORKING_REMOTE;
+    // }
+
+    // #pragma omp parallel reduction(+:reducer)
+    // {
+    //   R local_reducer = 0;
+    //   int thread_id = omp_get_thread_num();
+    //   while (true) {
+    //     VertexId v_i = __sync_fetch_and_add(&thread_state[thread_id]->curr, basic_chunk);
+    //     if (v_i >= thread_state[thread_id]->end) break;
+    //     unsigned long word = active->data[WORD_OFFSET(v_i)];
+    //     while (word != 0) {
+    //       if (word & 1) {
+    //         local_reducer += process(v_i);
+    //       }
+    //       v_i++;
+    //       word = word >> 1;
+    //     }
+    //   }
+    //   thread_state[thread_id]->status = STEALING_REMOTE;
+    //   for (int t_offset=1;t_offset<threads;t_offset++) {
+    //     int t_i = (thread_id + t_offset) % threads;
+    //     while (thread_state[t_i]->status < STEALING_REMOTE) {
+    //       VertexId v_i = __sync_fetch_and_add(&thread_state[t_i]->curr, basic_chunk);
+    //       if (v_i >= thread_state[t_i]->end) continue;
+    //       unsigned long word = active->data[WORD_OFFSET(v_i)];
+    //       while (word != 0) {
+    //         if (word & 1) {
+    //           local_reducer += process(v_i);
+    //         }
+    //         v_i++;
+    //         word = word >> 1;
+    //       }
+    //     }
+    //   }
+    //   reducer += local_reducer;
+    // }
+
+
+    std::vector<uint> delegated_farmem_partitions;
+    for (int i = FM::n_compute_partitions; i < partitions; ++i) {
+      if (i % FM::n_compute_partitions == partition_id) {
+        delegated_farmem_partitions.push_back(i);
       }
-      thread_state[t_i]->status = WORKING_REMOTE;
     }
 
-    #pragma omp parallel reduction(+:reducer)
-    {
-      R local_reducer = 0;
-      int thread_id = omp_get_thread_num();
-      while (true) {
-        VertexId v_i = __sync_fetch_and_add(&thread_state[thread_id]->curr, basic_chunk);
-        if (v_i >= thread_state[thread_id]->end) break;
-        unsigned long word = active->data[WORD_OFFSET(v_i)];
-        while (word != 0) {
-          if (word & 1) {
-            local_reducer += process(v_i);
-          }
-          v_i++;
-          word = word >> 1;
+    for (uint fp : delegated_farmem_partitions) {
+      VertexId partition_size = partition_offset[fp+1] - partition_offset[fp];
+      // for (uint b_i = partition_offset[fp]; b_i < partition_offset[fp+1]; b_i += basic_chunk) {
+      //     VertexId v_i = b_i;
+      //     unsigned long word = active->data[WORD_OFFSET(v_i)];
+      //     while (word != 0) {
+      //       if (word & 1) {
+      //         write_add(&reducer, process(v_i));
+      //       }
+      //       v_i++;
+      //       word = word >> 1;
+      //     }
+      // }
+
+      for (int t_i=0;t_i<threads;t_i++) {
+        thread_state[t_i]->curr = partition_offset[fp] + partition_size / threads / basic_chunk * basic_chunk * (t_i);
+        thread_state[t_i]->end =  partition_offset[fp] + partition_size / threads / basic_chunk * basic_chunk * (t_i + 1);
+        if (t_i == threads - 1) {
+          thread_state[t_i]->end = partition_offset[fp+1];
         }
+        thread_state[t_i]->status = WORKING;
       }
-      thread_state[thread_id]->status = STEALING_REMOTE;
-      for (int t_offset=1;t_offset<threads;t_offset++) {
-        int t_i = (thread_id + t_offset) % threads;
-        while (thread_state[t_i]->status < STEALING_REMOTE) {
-          VertexId v_i = __sync_fetch_and_add(&thread_state[t_i]->curr, basic_chunk);
-          if (v_i >= thread_state[t_i]->end) continue;
+
+      #pragma omp parallel reduction(+:reducer)
+      {
+        R local_reducer = 0;
+        int thread_id = omp_get_thread_num();
+        while (true) {
+          VertexId v_i = __sync_fetch_and_add(&thread_state[thread_id]->curr, basic_chunk);
+          if (v_i >= thread_state[thread_id]->end) break;
           unsigned long word = active->data[WORD_OFFSET(v_i)];
           while (word != 0) {
             if (word & 1) {
@@ -1652,10 +1706,29 @@ public:
             word = word >> 1;
           }
         }
+        thread_state[thread_id]->status = STEALING;
+        for (int t_offset=1;t_offset<threads;t_offset++) {
+          int t_i = (thread_id + t_offset) % threads;
+          while (thread_state[t_i]->status != STEALING) {
+            VertexId v_i = __sync_fetch_and_add(&thread_state[t_i]->curr, basic_chunk);
+            if (v_i >= thread_state[t_i]->end) continue;
+            unsigned long word = active->data[WORD_OFFSET(v_i)];
+            while (word != 0) {
+              if (word & 1) {
+                local_reducer += process(v_i);
+              }
+              v_i++;
+              word = word >> 1;
+            }
+          }
+        }
+        reducer += local_reducer;
       }
-      reducer += local_reducer;
     }
 
+    #ifdef PRINT_DEBUG_MESSAGES
+    fprintf(stderr, "%d: reducer = %d\n", partition_id, reducer);
+    #endif
     R global_reducer;
     MPI_Datatype dt = get_mpi_data_type<R>();
     MPI_Allreduce(&reducer, &global_reducer, 1, dt, MPI_SUM, FM::compute_comm_world);
@@ -1764,20 +1837,22 @@ public:
         flush_local_send_buffer<M>(t_i);
       }
       #ifdef PRINT_DEBUG_MESSAGES
-      printf("%d done sparse signal.\n", partition_id);
+      fprintf(stderr, "%d done sparse signal.\n", partition_id);
       #endif
 
       for(int s_i=0; s_i<sockets; ++s_i) {
         send_buffer[current_send_part_id][s_i]->owned_count = send_buffer[current_send_part_id][s_i]->count;
         #ifdef PRINT_DEBUG_MESSAGES
-        fprintf(stderr, "partition %d socket %d ownded %d vertices.\n", current_send_part_id, s_i, 
+        fprintf(stderr, "partition %d socket %d owns %d vertices.\n", current_send_part_id, s_i, 
                         send_buffer[current_send_part_id][s_i]->owned_count);
         #endif
       }
 
       #ifdef PRINT_DEBUG_MESSAGES
-      for (int i = 0; i <= partitions; ++i) {
-        printf("partition %d offset: %d\n", i, partition_offset[i]);
+      if (partition_id == 0) {
+        for (int i = 0; i <= partitions; ++i) {
+          fprintf(stderr, "partition %d offset: %d\n", i, partition_offset[i]);
+        }
       }
       #endif
 
@@ -1841,7 +1916,7 @@ public:
           for(int s_i=0; s_i<sockets; ++s_i) {
             send_buffer[current_send_part_id][s_i]->delegated_start[i] = send_buffer[current_send_part_id][s_i]->count;
             #ifdef PRINT_DEBUG_MESSAGES
-            fprintf(stderr, "send_buffer delegated_start_%d = %d\n", i, send_buffer[current_send_part_id][s_i]->delegated_start[i]);
+            fprintf(stderr, "%d send_buffer delegated_start_%d = %d\n", partition_id, i, send_buffer[current_send_part_id][s_i]->delegated_start[i]);
             #endif
           }
           // emit delegated vertices on behalf on partition i to recv_buffer, 
@@ -1869,7 +1944,7 @@ public:
       for(int s_i=0; s_i<sockets; ++s_i) {
         send_buffer[current_send_part_id][s_i]->delegated_start[partitions] = send_buffer[current_send_part_id][s_i]->count;
         #ifdef PRINT_DEBUG_MESSAGES
-        fprintf(stderr, "send_buffer delegated_start_%d = %d\n", partitions, send_buffer[current_send_part_id][s_i]->delegated_start[partitions]);
+        fprintf(stderr, "%d send_buffer delegated_start_%d = %d\n", partition_id, partitions, send_buffer[current_send_part_id][s_i]->delegated_start[partitions]);
         #endif
       }
       // #pragma omp parallel for
@@ -1878,7 +1953,7 @@ public:
       // }
 
       #ifdef PRINT_DEBUG_MESSAGES
-      printf("%d done delegated sparse signal.\n", partition_id);
+      fprintf(stderr, "%d done delegated sparse signal.\n", partition_id);
       #endif
       recv_queue[recv_queue_size] = partition_id;
       recv_queue_mutex.lock();
@@ -1944,7 +2019,7 @@ public:
           MsgUnit<M> * buffer = (MsgUnit<M> *)used_buffer[s_i]->data;
           size_t buffer_size = used_buffer[s_i]->owned_count;
           #ifdef PRINT_DEBUG_MESSAGES
-          printf("local sparse slot buffer_size = %d\n", buffer_size);
+          fprintf(stderr, "%d local sparse slot buffer_size = %d\n", partition_id, buffer_size);
           #endif
           for (int t_i=0;t_i<threads;t_i++) {
             // int s_i = get_socket_id(t_i);
@@ -2006,7 +2081,7 @@ public:
           }
         }
         #ifdef PRINT_DEBUG_MESSAGES
-        printf("%d done local sparse slot at step %d.\n", partition_id, step);
+        fprintf(stderr, "%d done local sparse slot at step %d.\n", partition_id, step);
         #endif
 
         if (i >= FM::n_compute_partitions) {
@@ -2018,7 +2093,7 @@ public:
             MsgUnit<M> * buffer = (MsgUnit<M> *)used_buffer[s_i]->data;
             size_t buffer_size = used_buffer[s_i]->owned_count;
             #ifdef PRINT_DEBUG_MESSAGES
-            printf("remote sparse slot buffer_size = %d\n", buffer_size);
+            fprintf(stderr, "%d remote sparse slot buffer_size = %d\n", partition_id, buffer_size);
             #endif
             for (int t_i=0;t_i<threads;t_i++) {
               // int s_i = get_socket_id(t_i);
@@ -2121,7 +2196,7 @@ public:
             }
           }
           #ifdef PRINT_DEBUG_MESSAGES
-          printf("%d done delegated sparse slot at step %d.\n", partition_id, step);
+          fprintf(stderr, "%d done delegated sparse slot at step %d.\n", partition_id, step);
           #endif
         }
       }
@@ -2130,6 +2205,9 @@ public:
       for (int step=0;step<farmem_partitions;step++) {
         for (uint fp : delegated_farmem_partitions) {
           int i = ((fp - FM::n_compute_partitions) + step) % farmem_partitions + FM::n_compute_partitions;
+          #ifdef PRINT_DEBUG_MESSAGES
+          fprintf(stderr, "%d serving as %d to sparse slot %d at step %d\n", partition_id, fp, i, step);
+          #endif
           MessageBuffer ** used_buffer = recv_buffer[fp];
           // handling received vertices delegated to partition i
           for (int s_i=0;s_i<sockets;s_i++) {
@@ -2137,7 +2215,9 @@ public:
             // size_t buffer_size = used_buffer[s_i]->count - used_buffer[s_i]->owned_count;
             MsgUnit<M> * buffer = (MsgUnit<M> *)used_buffer[s_i]->data;
             size_t buffer_size = used_buffer[s_i]->owned_count;
-            // printf("remote sparse slot buffer_size = %d\n", buffer_size);
+            #ifdef PRINT_DEBUG_MESSAGES
+            fprintf(stderr, "%d remote sparse slot buffer_size = %d\n", partition_id, buffer_size);
+            #endif
             for (int t_i=0;t_i<threads;t_i++) {
               // int s_i = get_socket_id(t_i);
               int s_j = get_socket_offset(t_i);
@@ -2240,11 +2320,11 @@ public:
       }
       send_thread.join();
         #ifdef PRINT_DEBUG_MESSAGES
-        printf("%d sender thread joined.\n", partition_id);
+        fprintf(stderr, "%d sender thread joined.\n", partition_id);
         #endif
       recv_thread.join();
         #ifdef PRINT_DEBUG_MESSAGES
-        printf("%d receiver thread joined.\n", partition_id);
+        fprintf(stderr, "%d receiver thread joined.\n", partition_id);
         #endif
       delete [] recv_queue;
     } else {
