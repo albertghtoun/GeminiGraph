@@ -158,6 +158,9 @@ public:
   MessageBuffer *** send_buffer; // MessageBuffer* [partitions] [sockets]; numa-aware
   MessageBuffer *** recv_buffer; // MessageBuffer* [partitions] [sockets]; numa-aware
 
+  #if ENABLE_BITMAP_CACHE == 1
+  FM::bitmap_cache_item **** outgoing_adj_bitmap_cache; // bitmap cache.
+  #endif
   #if ENABLE_INDEX_CACHE == 1
   FM::index_cache_item **** index_cache;  // index cache.
   #endif
@@ -183,6 +186,10 @@ public:
       }
     }
 
+    #if ENABLE_BITMAP_CACHE == 1
+    fprintf(stderr, "bitmap_cache_hit = %lu\n", FM::outgoing_adj_bitmap_cache_hit.load());
+    fprintf(stderr, "bitmap_cache_miss = %lu\n", FM::outgoing_adj_bitmap_cache_miss.load());
+    #endif
     #if ENABLE_INDEX_CACHE == 1
     fprintf(stderr, "index_cache_hit = %lu\n", FM::index_cache_hit.load());
     fprintf(stderr, "index_cache_miss = %lu\n", FM::index_cache_miss.load());
@@ -245,12 +252,18 @@ public:
 
     send_buffer = new MessageBuffer ** [partitions];
     recv_buffer = new MessageBuffer ** [partitions];
+    #if ENABLE_BITMAP_CACHE == 1
+    outgoing_adj_bitmap_cache = new FM::bitmap_cache_item *** [partitions];
+    #endif
     #if ENABLE_INDEX_CACHE == 1
     index_cache = new FM::index_cache_item *** [partitions];
     #endif
     for (int i=0;i<partitions;i++) {
       send_buffer[i] = new MessageBuffer * [sockets];
       recv_buffer[i] = new MessageBuffer * [sockets];
+      #if ENABLE_BITMAP_CACHE == 1
+      outgoing_adj_bitmap_cache[i] = new FM::bitmap_cache_item ** [sockets];
+      #endif
       #if ENABLE_INDEX_CACHE == 1
       index_cache[i] = new FM::index_cache_item ** [sockets];
       #endif
@@ -1512,6 +1525,16 @@ public:
     MPI_Barrier(MPI_COMM_WORLD);
 
     // init optimization structures
+    #if ENABLE_BITMAP_CACHE == 1
+    for (int i=0;i<partitions;i++) {
+      for (int s_i=0;s_i<sockets;s_i++) {
+        outgoing_adj_bitmap_cache[i][s_i] = (FM::bitmap_cache_item**)numa_alloc_onnode(sizeof(FM::bitmap_cache_item*) * vertices * sockets, s_i);
+        memset(outgoing_adj_bitmap_cache[i][s_i], 0, sizeof(FM::bitmap_cache_item*) * vertices * sockets);
+      }
+    }
+    FM::outgoing_adj_bitmap_cache_pool = (FM::bitmap_cache_item*)malloc(sizeof(FM::bitmap_cache_item) * vertices);
+    #endif
+
     #if ENABLE_INDEX_CACHE == 1
     for (int i=0;i<partitions;i++) {
       for (int s_i=0;s_i<sockets;s_i++) {
@@ -2224,9 +2247,25 @@ public:
                   M msg_data = buffer[b_i].msg_data;
                   uint remote_node = fp;
                   unsigned long word;
+                  #if ENABLE_BITMAP_CACHE == 1
+                    auto cached_item_ptr = outgoing_adj_bitmap_cache[remote_node][s_i][v_i];
+                    if (cached_item_ptr != NULL) {
+                      word = cached_item_ptr->word;
+                      FM::outgoing_adj_bitmap_cache_hit++;
+                    } else {
+                      MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_bitmap_data_win[s_i][thread_id]);
+                      MPI_Get(&word, 1, MPI_UNSIGNED_LONG, remote_node, WORD_OFFSET(v_i), 1, MPI_UNSIGNED_LONG, *outgoing_adj_bitmap_data_win[s_i][thread_id]);
+                      MPI_Win_unlock(remote_node, *outgoing_adj_bitmap_data_win[s_i][thread_id]);
+                      uint64_t cache_index = __sync_fetch_and_add(&FM::outgoing_adj_bitmap_cache_pool_count, 1);
+                      FM::outgoing_adj_bitmap_cache_pool[cache_index] = FM::bitmap_cache_item(word);
+                      outgoing_adj_bitmap_cache[remote_node][s_i][v_i] = &FM::outgoing_adj_bitmap_cache_pool[cache_index];
+                      FM::outgoing_adj_bitmap_cache_miss++;
+                    }
+                  #else
                   MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_bitmap_data_win[s_i][thread_id]);
                   MPI_Get(&word, 1, MPI_UNSIGNED_LONG, remote_node, WORD_OFFSET(v_i), 1, MPI_UNSIGNED_LONG, *outgoing_adj_bitmap_data_win[s_i][thread_id]);
                   MPI_Win_unlock(remote_node, *outgoing_adj_bitmap_data_win[s_i][thread_id]);
+                  #endif
                   if (word & (1ul<<BIT_OFFSET(v_i))) {
                     // retrieve index and index+1
                     EdgeId indices[2];
