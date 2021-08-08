@@ -187,12 +187,16 @@ public:
     }
 
     #if ENABLE_BITMAP_CACHE == 1
-    fprintf(stderr, "bitmap_cache_hit = %lu\n", FM::outgoing_adj_bitmap_cache_hit.load());
-    fprintf(stderr, "bitmap_cache_miss = %lu\n", FM::outgoing_adj_bitmap_cache_miss.load());
+    if (partition_id < FM::n_compute_partitions) {
+      fprintf(stderr, "%d: bitmap_cache_hit = %lu\n", partition_id, FM::outgoing_adj_bitmap_cache_hit.load());
+      fprintf(stderr, "%d: bitmap_cache_miss = %lu\n", partition_id, FM::outgoing_adj_bitmap_cache_miss.load());
+    }
     #endif
     #if ENABLE_INDEX_CACHE == 1
-    fprintf(stderr, "index_cache_hit = %lu\n", FM::index_cache_hit.load());
-    fprintf(stderr, "index_cache_miss = %lu\n", FM::index_cache_miss.load());
+    if (partition_id < FM::n_compute_partitions) {
+      fprintf(stderr, "%d: index_cache_hit = %lu\n", partition_id, FM::index_cache_hit.load());
+      fprintf(stderr, "%d: index_cache_miss = %lu\n", partition_id, FM::index_cache_miss.load());
+    }
     #endif
   }
 
@@ -2320,15 +2324,49 @@ public:
                     M msg_data = buffer[b_i].msg_data;
                     uint remote_node = fp;
                     unsigned long word;
+                    #if ENABLE_BITMAP_CACHE == 1
+                    auto cached_item_ptr = outgoing_adj_bitmap_cache[remote_node][s_i][v_i];
+                    if (cached_item_ptr != NULL) {
+                      word = cached_item_ptr->word;
+                      FM::outgoing_adj_bitmap_cache_hit++;
+                    } else {
+                      MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_bitmap_data_win[s_i][thread_id]);
+                      MPI_Get(&word, 1, MPI_UNSIGNED_LONG, remote_node, WORD_OFFSET(v_i), 1, MPI_UNSIGNED_LONG, *outgoing_adj_bitmap_data_win[s_i][thread_id]);
+                      MPI_Win_unlock(remote_node, *outgoing_adj_bitmap_data_win[s_i][thread_id]);
+                      uint64_t cache_index = __sync_fetch_and_add(&FM::outgoing_adj_bitmap_cache_pool_count, 1);
+                      FM::outgoing_adj_bitmap_cache_pool[cache_index] = FM::bitmap_cache_item(word);
+                      outgoing_adj_bitmap_cache[remote_node][s_i][v_i] = &FM::outgoing_adj_bitmap_cache_pool[cache_index];
+                      FM::outgoing_adj_bitmap_cache_miss++;
+                    }
+                    #else
                     MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_bitmap_data_win[s_i][thread_id]);
                     MPI_Get(&word, 1, MPI_UNSIGNED_LONG, remote_node, WORD_OFFSET(v_i), 1, MPI_UNSIGNED_LONG, *outgoing_adj_bitmap_data_win[s_i][thread_id]);
                     MPI_Win_unlock(remote_node, *outgoing_adj_bitmap_data_win[s_i][thread_id]);
+                    #endif
                     if (word & (1ul<<BIT_OFFSET(v_i))) {
                       // retrieve index and index+1
                       EdgeId indices[2];
+                      #if ENABLE_INDEX_CACHE == 1
+                      auto cached_item_ptr = index_cache[remote_node][s_i][v_i];
+                      if (cached_item_ptr != NULL) {
+                        indices[0] = cached_item_ptr->first;
+                        indices[1] = cached_item_ptr->second;
+                        FM::index_cache_hit++;
+                      } else {
+                        MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_index_data_win[s_i][thread_id]);
+                        MPI_Get(&indices, 2, MPI_UNSIGNED_LONG, remote_node, v_i, 2, MPI_UNSIGNED_LONG, *outgoing_adj_index_data_win[s_i][thread_id]);
+                        MPI_Win_unlock(remote_node, *outgoing_adj_index_data_win[s_i][thread_id]);
+                        uint64_t cache_index = __sync_fetch_and_add(&FM::index_cache_pool_count, 1);
+                        FM::index_cache_pool[cache_index] = FM::index_cache_item(indices[0], indices[1]);
+                        index_cache[remote_node][s_i][v_i] = &FM::index_cache_pool[cache_index];
+                        FM::index_cache_miss++;
+                      }
+                      #else
                       MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_index_data_win[s_i][thread_id]);
                       MPI_Get(&indices, 2, MPI_UNSIGNED_LONG, remote_node, v_i, 2, MPI_UNSIGNED_LONG, *outgoing_adj_index_data_win[s_i][thread_id]);
                       MPI_Win_unlock(remote_node, *outgoing_adj_index_data_win[s_i][thread_id]);
+                      #endif
+
                       // retrieve corresponding list values between [index, index+1)
                       EdgeId n_adj_edges = indices[1]-indices[0];
                       std::vector<AdjUnit<EdgeData>> locally_cached_adj(n_adj_edges+1);
