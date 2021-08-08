@@ -158,6 +158,10 @@ public:
   MessageBuffer *** send_buffer; // MessageBuffer* [partitions] [sockets]; numa-aware
   MessageBuffer *** recv_buffer; // MessageBuffer* [partitions] [sockets]; numa-aware
 
+  #if ENABLE_INDEX_CACHE == 1
+  FM::index_cache_item **** index_cache;  // index cache.
+  #endif
+
   Graph() {
     threads = numa_num_configured_cpus();
     sockets = 1; // numa_num_configured_nodes();
@@ -178,6 +182,11 @@ public:
         MPI_Win_free(incoming_adj_list_data_win[s_i][t_i]);
       }
     }
+
+    #if ENABLE_INDEX_CACHE == 1
+    fprintf(stderr, "index_cache_hit = %lu\n", FM::index_cache_hit.load());
+    fprintf(stderr, "index_cache_miss = %lu\n", FM::index_cache_miss.load());
+    #endif
   }
 
   inline int get_socket_id(int thread_id) {
@@ -236,9 +245,15 @@ public:
 
     send_buffer = new MessageBuffer ** [partitions];
     recv_buffer = new MessageBuffer ** [partitions];
+    #if ENABLE_INDEX_CACHE == 1
+    index_cache = new FM::index_cache_item *** [partitions];
+    #endif
     for (int i=0;i<partitions;i++) {
       send_buffer[i] = new MessageBuffer * [sockets];
       recv_buffer[i] = new MessageBuffer * [sockets];
+      #if ENABLE_INDEX_CACHE == 1
+      index_cache[i] = new FM::index_cache_item ** [sockets];
+      #endif
       for (int s_i=0;s_i<sockets;s_i++) {
         send_buffer[i][s_i] = (MessageBuffer*)numa_alloc_onnode( sizeof(MessageBuffer), s_i);
         send_buffer[i][s_i]->init(s_i);
@@ -1496,6 +1511,16 @@ public:
     }
     MPI_Barrier(MPI_COMM_WORLD);
 
+    // init optimization structures
+    #if ENABLE_INDEX_CACHE == 1
+    for (int i=0;i<partitions;i++) {
+      for (int s_i=0;s_i<sockets;s_i++) {
+        index_cache[i][s_i] = (FM::index_cache_item**)numa_alloc_onnode(sizeof(FM::index_cache_item*) * vertices * sockets, s_i);
+        memset(index_cache[i][s_i], 0, sizeof(FM::index_cache_item*) * vertices * sockets);
+      }
+    }
+    FM::index_cache_pool = (FM::index_cache_item*)malloc(sizeof(FM::index_cache_item) * vertices);
+    #endif
     delete [] buffered_edges;
     delete [] send_buffer;
     delete [] read_edge_buffer;
@@ -2205,9 +2230,27 @@ public:
                   if (word & (1ul<<BIT_OFFSET(v_i))) {
                     // retrieve index and index+1
                     EdgeId indices[2];
+                    #if ENABLE_INDEX_CACHE == 1
+                    auto cached_item_ptr = index_cache[remote_node][s_i][v_i];
+                    if (cached_item_ptr != NULL) {
+                      indices[0] = cached_item_ptr->first;
+                      indices[1] = cached_item_ptr->second;
+                      FM::index_cache_hit++;
+                    } else {
+                      MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_index_data_win[s_i][thread_id]);
+                      MPI_Get(&indices, 2, MPI_UNSIGNED_LONG, remote_node, v_i, 2, MPI_UNSIGNED_LONG, *outgoing_adj_index_data_win[s_i][thread_id]);
+                      MPI_Win_unlock(remote_node, *outgoing_adj_index_data_win[s_i][thread_id]);
+                      uint64_t cache_index = __sync_fetch_and_add(&FM::index_cache_pool_count, 1);
+                      FM::index_cache_pool[cache_index] = FM::index_cache_item(indices[0], indices[1]);
+                      index_cache[remote_node][s_i][v_i] = &FM::index_cache_pool[cache_index];
+                      FM::index_cache_miss++;
+                    }
+                    #else
                     MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_index_data_win[s_i][thread_id]);
                     MPI_Get(&indices, 2, MPI_UNSIGNED_LONG, remote_node, v_i, 2, MPI_UNSIGNED_LONG, *outgoing_adj_index_data_win[s_i][thread_id]);
                     MPI_Win_unlock(remote_node, *outgoing_adj_index_data_win[s_i][thread_id]);
+                    #endif
+
                     // retrieve corresponding list values between [index, index+1)
                     EdgeId n_adj_edges = indices[1]-indices[0];
                     std::vector<AdjUnit<EdgeData>> locally_cached_adj(n_adj_edges+1);
