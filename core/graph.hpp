@@ -164,6 +164,10 @@ public:
   #if ENABLE_INDEX_CACHE == 1
   FM::index_cache_item **** index_cache;  // index cache.
   #endif
+  #if ENABLE_EDGE_CACHE == 1
+  FM::edge_cache_set<EdgeData> **** edge_cache;  // edge cache.
+  FM::edge_cache_pool_t<EdgeData> edge_cache_pool;  // edge cache pool.
+  #endif
 
   Graph() {
     threads = numa_num_configured_cpus();
@@ -196,6 +200,13 @@ public:
     if (partition_id < FM::n_compute_partitions) {
       fprintf(stderr, "%d: index_cache_hit = %lu\n", partition_id, FM::index_cache_hit.load());
       fprintf(stderr, "%d: index_cache_miss = %lu\n", partition_id, FM::index_cache_miss.load());
+    }
+    #endif
+    #if ENABLE_EDGE_CACHE == 1
+    if (partition_id < FM::n_compute_partitions) {
+      fprintf(stderr, "%d: edge_cache_hit = %lu\n", partition_id, FM::edge_cache_hit.load());
+      fprintf(stderr, "%d: edge_cache_miss = %lu\n", partition_id, FM::edge_cache_miss.load());
+      fprintf(stderr, "%d: edge_cache_count = %lu\n", partition_id, FM::edge_cache_pool_count.load());
     }
     #endif
   }
@@ -262,6 +273,9 @@ public:
     #if ENABLE_INDEX_CACHE == 1
     index_cache = new FM::index_cache_item *** [partitions];
     #endif
+    #if ENABLE_EDGE_CACHE == 1
+    edge_cache = new FM::edge_cache_set<EdgeData> *** [partitions];
+    #endif
     for (int i=0;i<partitions;i++) {
       send_buffer[i] = new MessageBuffer * [sockets];
       recv_buffer[i] = new MessageBuffer * [sockets];
@@ -270,6 +284,9 @@ public:
       #endif
       #if ENABLE_INDEX_CACHE == 1
       index_cache[i] = new FM::index_cache_item ** [sockets];
+      #endif
+      #if ENABLE_EDGE_CACHE == 1
+      edge_cache[i] = new FM::edge_cache_set<EdgeData> ** [sockets];
       #endif
       for (int s_i=0;s_i<sockets;s_i++) {
         send_buffer[i][s_i] = (MessageBuffer*)numa_alloc_onnode( sizeof(MessageBuffer), s_i);
@@ -1548,6 +1565,18 @@ public:
     }
     FM::index_cache_pool = (FM::index_cache_item*)malloc(sizeof(FM::index_cache_item) * vertices);
     #endif
+
+    #if ENABLE_EDGE_CACHE == 1
+    for (int i=0;i<partitions;i++) {
+      for (int s_i=0;s_i<sockets;s_i++) {
+        edge_cache[i][s_i] = (FM::edge_cache_set<EdgeData>**)numa_alloc_onnode(sizeof(FM::edge_cache_set<EdgeData>*) * vertices * sockets, s_i);
+        memset(edge_cache[i][s_i], 0, sizeof(FM::edge_cache_set<EdgeData>*) * vertices * sockets);
+      }
+    }
+    edge_cache_pool.head.next = NULL;
+    FM::edge_cache_pool_count = 0;
+    #endif
+
     delete [] buffered_edges;
     delete [] send_buffer;
     delete [] read_edge_buffer;
@@ -2297,10 +2326,70 @@ public:
                     // retrieve corresponding list values between [index, index+1)
                     EdgeId n_adj_edges = indices[1]-indices[0];
                     std::vector<AdjUnit<EdgeData>> locally_cached_adj(n_adj_edges+1);
+                    #if ENABLE_EDGE_CACHE == 1
+                    auto cached_edgeset_ptr = edge_cache[remote_node][s_i][v_i];
+                    if (cached_edgeset_ptr != NULL) {
+                      FM::edge_cache_set<EdgeData>* old_ptr = NULL;
+                      while(true) {
+                        old_ptr = edge_cache[remote_node][s_i][v_i];
+                        bool success = cas(&edge_cache[remote_node][s_i][v_i], old_ptr, (FM::edge_cache_set<EdgeData>*)NULL);
+                        if (success) break;
+                      }
+                      if(unlikely(old_ptr == NULL)) {
+                        MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_list_data_win[s_i][thread_id]);
+                        MPI_Get(&locally_cached_adj[0], n_adj_edges*unit_size, MPI_CHAR,
+                                remote_node, indices[0], n_adj_edges*unit_size, MPI_CHAR, *outgoing_adj_list_data_win[s_i][thread_id]);
+                        MPI_Win_unlock(remote_node, *outgoing_adj_list_data_win[s_i][thread_id]);
+                        auto set = new FM::edge_cache_set<EdgeData>;
+                        for (int idx = 0; idx < n_adj_edges; ++idx) {
+                          set->edges.emplace_back(v_i, locally_cached_adj[idx]);
+                        }
+                        bool success = cas(&edge_cache[remote_node][s_i][v_i], (FM::edge_cache_set<EdgeData>*)NULL, set);
+                        assert(success);
+                        while (true) {
+                          set->next = edge_cache_pool.head.next;
+                          FM::edge_cache_set<EdgeData>* old_val = edge_cache_pool.head.next;
+                          success = cas(&edge_cache_pool.head.next, old_val, set);
+                          if (success) break;
+                        }
+                        FM::edge_cache_pool_count += set->edges.size();
+                        FM::edge_cache_miss++;
+                      } else {
+                        assert(old_ptr->edges.size() == n_adj_edges);
+                        for(int idx = 0; idx < old_ptr->edges.size(); ++idx) {
+                          locally_cached_adj[idx].neighbour = old_ptr->edges[idx].edge.dst;
+                          locally_cached_adj[idx].edge_data = old_ptr->edges[idx].edge.edge_data;
+                        }
+                        bool success = cas(&edge_cache[remote_node][s_i][v_i], (FM::edge_cache_set<EdgeData>*)NULL, old_ptr);
+                        assert(success);
+                        FM::edge_cache_hit++;
+                      }
+                    } else {
+                      MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_list_data_win[s_i][thread_id]);
+                      MPI_Get(&locally_cached_adj[0], n_adj_edges*unit_size, MPI_CHAR,
+                              remote_node, indices[0], n_adj_edges*unit_size, MPI_CHAR, *outgoing_adj_list_data_win[s_i][thread_id]);
+                      MPI_Win_unlock(remote_node, *outgoing_adj_list_data_win[s_i][thread_id]);
+                      auto set = new FM::edge_cache_set<EdgeData>;
+                      for (int idx = 0; idx < n_adj_edges; ++idx) {
+                        set->edges.emplace_back(v_i, locally_cached_adj[idx]);
+                      }
+                      bool success = cas(&edge_cache[remote_node][s_i][v_i], (FM::edge_cache_set<EdgeData>*)NULL, set);
+                      assert(success);
+                      while (true) {
+                        set->next = edge_cache_pool.head.next;
+                        FM::edge_cache_set<EdgeData>* old_val = edge_cache_pool.head.next;
+                        success = cas(&edge_cache_pool.head.next, old_val, set);
+                        if (success) break;
+                      }
+                      FM::edge_cache_pool_count += set->edges.size();
+                      FM::edge_cache_miss++;
+                    }
+                    #else
                     MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_list_data_win[s_i][thread_id]);
                     MPI_Get(&locally_cached_adj[0], n_adj_edges*unit_size, MPI_CHAR, 
                             remote_node, indices[0], n_adj_edges*unit_size, MPI_CHAR, *outgoing_adj_list_data_win[s_i][thread_id]);
                     MPI_Win_unlock(remote_node, *outgoing_adj_list_data_win[s_i][thread_id]);
+                    #endif
                     // printf("remote sparse_slot %d\n", v_i);
                     local_reducer += sparse_slot(v_i, msg_data, VertexAdjList<EdgeData>(&locally_cached_adj[0], &locally_cached_adj[n_adj_edges]));
                   }
@@ -2370,10 +2459,70 @@ public:
                       // retrieve corresponding list values between [index, index+1)
                       EdgeId n_adj_edges = indices[1]-indices[0];
                       std::vector<AdjUnit<EdgeData>> locally_cached_adj(n_adj_edges+1);
+                      #if ENABLE_EDGE_CACHE == 1
+                      auto cached_edgeset_ptr = edge_cache[remote_node][s_i][v_i];
+                      if (cached_edgeset_ptr != NULL) {
+                        FM::edge_cache_set<EdgeData>* old_ptr = NULL;
+                        while(true) {
+                          old_ptr = edge_cache[remote_node][s_i][v_i];
+                          bool success = cas(&edge_cache[remote_node][s_i][v_i], old_ptr, (FM::edge_cache_set<EdgeData>*)NULL);
+                          if (success) break;
+                        }
+                        if(unlikely(old_ptr == NULL)) {
+                          MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_list_data_win[s_i][thread_id]);
+                          MPI_Get(&locally_cached_adj[0], n_adj_edges*unit_size, MPI_CHAR,
+                                  remote_node, indices[0], n_adj_edges*unit_size, MPI_CHAR, *outgoing_adj_list_data_win[s_i][thread_id]);
+                          MPI_Win_unlock(remote_node, *outgoing_adj_list_data_win[s_i][thread_id]);
+                          auto set = new FM::edge_cache_set<EdgeData>;
+                          for (int idx = 0; idx < n_adj_edges; ++idx) {
+                            set->edges.emplace_back(v_i, locally_cached_adj[idx]);
+                          }
+                          bool success = cas(&edge_cache[remote_node][s_i][v_i], (FM::edge_cache_set<EdgeData>*)NULL, set);
+                          assert(success);
+                          while (true) {
+                            set->next = edge_cache_pool.head.next;
+                            FM::edge_cache_set<EdgeData>* old_val = edge_cache_pool.head.next;
+                            success = cas(&edge_cache_pool.head.next, old_val, set);
+                            if (success) break;
+                          }
+                          FM::edge_cache_pool_count += set->edges.size();
+                          FM::edge_cache_miss++;
+                        } else {
+                          assert(old_ptr->edges.size() == n_adj_edges);
+                          for(int idx = 0; idx < old_ptr->edges.size(); ++idx) {
+                            locally_cached_adj[idx].neighbour = old_ptr->edges[idx].edge.dst;
+                            locally_cached_adj[idx].edge_data = old_ptr->edges[idx].edge.edge_data;
+                          }
+                          bool success = cas(&edge_cache[remote_node][s_i][v_i], (FM::edge_cache_set<EdgeData>*)NULL, old_ptr);
+                          assert(success);
+                          FM::edge_cache_hit++;
+                        }
+                      } else {
+                        MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_list_data_win[s_i][thread_id]);
+                        MPI_Get(&locally_cached_adj[0], n_adj_edges*unit_size, MPI_CHAR,
+                                remote_node, indices[0], n_adj_edges*unit_size, MPI_CHAR, *outgoing_adj_list_data_win[s_i][thread_id]);
+                        MPI_Win_unlock(remote_node, *outgoing_adj_list_data_win[s_i][thread_id]);
+                        auto set = new FM::edge_cache_set<EdgeData>;
+                        for (int idx = 0; idx < n_adj_edges; ++idx) {
+                          set->edges.emplace_back(v_i, locally_cached_adj[idx]);
+                        }
+                        bool success = cas(&edge_cache[remote_node][s_i][v_i], (FM::edge_cache_set<EdgeData>*)NULL, set);
+                        assert(success);
+                        while (true) {
+                          set->next = edge_cache_pool.head.next;
+                          FM::edge_cache_set<EdgeData>* old_val = edge_cache_pool.head.next;
+                          success = cas(&edge_cache_pool.head.next, old_val, set);
+                          if (success) break;
+                        }
+                        FM::edge_cache_pool_count += set->edges.size();
+                        FM::edge_cache_miss++;
+                      }
+                      #else
                       MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_list_data_win[s_i][thread_id]);
                       MPI_Get(&locally_cached_adj[0], n_adj_edges*unit_size, MPI_CHAR, 
                               remote_node, indices[0], n_adj_edges*unit_size, MPI_CHAR, *outgoing_adj_list_data_win[s_i][thread_id]);
                       MPI_Win_unlock(remote_node, *outgoing_adj_list_data_win[s_i][thread_id]);
+                      #endif
                       // printf("remote sparse_slot %d\n", v_i);
                       local_reducer += sparse_slot(v_i, msg_data, VertexAdjList<EdgeData>(&locally_cached_adj[0], &locally_cached_adj[n_adj_edges]));
                     }
