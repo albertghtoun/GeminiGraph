@@ -2123,6 +2123,40 @@ public:
       #ifdef PRINT_DEBUG_MESSAGES
       fprintf(stderr, "%d done delegated sparse signal.\n", partition_id);
       #endif
+
+      // bool gc_thread_should_end = false;
+      // // starting a garbage collecting thread.
+      // std::thread gc([&](){
+      //   fprintf(stderr, "%d: started gc thread.\n", partition_id);
+      //   while (true) {
+      //     // std::this_thread::yield();
+      //     sleep(10);
+      //     if (gc_thread_should_end)
+      //       break;
+      //     if (!gc_thread_should_gc)
+      //     uint64_t edges_cnt = 0;
+      //     FM::edge_cache_set<EdgeData>* cur = outgoing_edge_cache_pool->head.next;
+      //     while (cur != NULL) {
+      //       if (edges_cnt + cur->edges.size() >= FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES) {
+      //         break;
+      //       }
+      //       edges_cnt += cur->edges.size();
+      //       cur = cur->next;
+      //     }
+      //     fprintf(stderr, "here2\n");
+      //     if (cur != NULL) {
+      //       FM::edge_cache_set<EdgeData>* next_val = cur->next;
+      //       bool success = cas(&cur->next, next_val, (FM::edge_cache_set<EdgeData>*)NULL);
+      //       assert(success);
+      //       for (FM::edge_cache_set<EdgeData>* ptr = next_val; ptr != NULL; ptr = ptr->next) {
+      //         FM::edge_cache_set<EdgeData>** addr = ptr->this_stored_address;
+      //         *addr = NULL;
+      //         ptr->edges.clear();
+      //       }
+      //     }
+      //   }
+      // });
+
       recv_queue[recv_queue_size] = partition_id;
       recv_queue_mutex.lock();
       recv_queue_size += 1;
@@ -2320,6 +2354,8 @@ public:
               thread_state[t_i]->status = WORKING;
             }
 
+            FM::edge_cache_set<EdgeData>* gc_edgeset_start = NULL;
+            std::mutex insert_after_head;
             #pragma omp parallel reduction(+:reducer,reducer2)
             {
               R local_reducer = 0;
@@ -2387,13 +2423,10 @@ public:
                     #if ENABLE_EDGE_CACHE == 1
                     auto cached_edgeset_ptr = outgoing_edge_cache[remote_node][s_i][v_i];
                     if (cached_edgeset_ptr != NULL) {
-                      FM::edge_cache_set<EdgeData>* old_ptr = NULL;
-                      while(true) {
-                        old_ptr = outgoing_edge_cache[remote_node][s_i][v_i];
-                        bool success = cas(&outgoing_edge_cache[remote_node][s_i][v_i], old_ptr, (FM::edge_cache_set<EdgeData>*)NULL);
-                        if (success) break;
-                      }
-                      if(unlikely(old_ptr == NULL)) {
+                      bool success = cas(&cached_edgeset_ptr->status, 0, 1);
+                      if (!success) {
+                        // I am already been garbage collected. construct the cached_edgeset from the network.
+                        assert(cached_edgeset_ptr->status == 2);
                         MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_list_data_win[s_i][thread_id]);
                         MPI_Get(&locally_cached_adj[0], n_adj_edges*unit_size, MPI_CHAR,
                                 remote_node, indices[0], n_adj_edges*unit_size, MPI_CHAR, *outgoing_adj_list_data_win[s_i][thread_id]);
@@ -2402,26 +2435,87 @@ public:
                         for (int idx = 0; idx < n_adj_edges; ++idx) {
                           set->edges.emplace_back(locally_cached_adj[idx]);
                         }
-                        bool success = cas(&outgoing_edge_cache[remote_node][s_i][v_i], (FM::edge_cache_set<EdgeData>*)NULL, set);
-                        assert(success);
-                        while (true) {
+                        outgoing_edge_cache[remote_node][s_i][v_i] = set;
+                        {
+                          const std::lock_guard<std::mutex> lock(insert_after_head);
+                          set->edges_cnt_after_me_in_history = outgoing_edge_cache_pool->head.all_edges_cnt_in_history;
                           set->next = outgoing_edge_cache_pool->head.next;
-                          FM::edge_cache_set<EdgeData>* old_val = outgoing_edge_cache_pool->head.next;
-                          success = cas(&outgoing_edge_cache_pool->head.next, old_val, set);
-                          if (success) break;
+                          outgoing_edge_cache_pool->head.all_edges_cnt_in_history += set->edges.size();
+                          outgoing_edge_cache_pool->head.next = set;
                         }
-                        (*FM::outgoing_edge_cache_pool_count) += set->edges.size();
+                        (*FM::outgoing_edge_cache_pool_count) += n_adj_edges;
                         (*FM::outgoing_edge_cache_miss)++;
                       } else {
-                        assert(old_ptr->edges.size() == n_adj_edges);
-                        for(int idx = 0; idx < old_ptr->edges.size(); ++idx) {
-                          locally_cached_adj[idx].neighbour = old_ptr->edges[idx].edge.neighbour;
-                          locally_cached_adj[idx].edge_data = old_ptr->edges[idx].edge.edge_data;
+                        // I haven't been garbage collected and have successfully set my status to ACCESS.
+                        assert(cached_edgeset_ptr->edges.size() == n_adj_edges);
+                        for(int idx = 0; idx < cached_edgeset_ptr->edges.size(); ++idx) {
+                          locally_cached_adj[idx].neighbour = cached_edgeset_ptr->edges[idx].edge.neighbour;
+                          locally_cached_adj[idx].edge_data = cached_edgeset_ptr->edges[idx].edge.edge_data;
                         }
-                        bool success = cas(&outgoing_edge_cache[remote_node][s_i][v_i], (FM::edge_cache_set<EdgeData>*)NULL, old_ptr);
-                        assert(success);
-                        (*FM::outgoing_edge_cache_hit)++;
+                        cached_edgeset_ptr->status = 0;
+
+                        uint64_t diff = outgoing_edge_cache_pool->head.all_edges_cnt_in_history - cached_edgeset_ptr->edges_cnt_after_me_in_history;
+                        if (diff >= FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES) {
+                          // I need to do edge recycling.
+                          bool success = cas(&gc_edgeset_start, (FM::edge_cache_set<EdgeData>*)NULL, cached_edgeset_ptr->next);
+                          if (success) {
+                            // I am the only one recycler. I need to do both age refreshing and edge recycling for list node after me.
+                            auto refreshed_set = new FM::edge_cache_set<EdgeData>(v_i);
+                            for (int idx = 0; idx < cached_edgeset_ptr->edges.size(); ++idx) {
+                              refreshed_set->edges.emplace_back(locally_cached_adj[idx]);
+                            }
+                            outgoing_edge_cache[remote_node][s_i][v_i] = refreshed_set;
+                            {
+                              const std::lock_guard<std::mutex> lock(insert_after_head);
+                              refreshed_set->edges_cnt_after_me_in_history = outgoing_edge_cache_pool->head.all_edges_cnt_in_history;
+                              refreshed_set->next = outgoing_edge_cache_pool->head.next;
+                              outgoing_edge_cache_pool->head.all_edges_cnt_in_history += cached_edgeset_ptr->edges.size();
+                              outgoing_edge_cache_pool->head.next = refreshed_set;
+                            }
+
+                            // do the recycling
+                            for (FM::edge_cache_set<EdgeData>* ptr = gc_edgeset_start; ptr != NULL && ptr->status != 2; ptr = ptr->next) {
+                              while (true) {
+                                bool success = cas(&ptr->status, 0, 2);
+                                if (success) break;
+                              }
+                              (*FM::outgoing_edge_cache_pool_count) -= ptr->edges.size();
+                              ptr->edges.clear();
+                            }
+                          } else {
+                            // some other thread is recycling, I will skip this recycling step this time.
+                            // only do age refreshing with a recycling thread running in mind.
+                            auto refreshed_set = new FM::edge_cache_set<EdgeData>(v_i);
+                            for (int idx = 0; idx < n_adj_edges; ++idx) {
+                              refreshed_set->edges.emplace_back(locally_cached_adj[idx]);
+                            }
+                            outgoing_edge_cache[remote_node][s_i][v_i] = refreshed_set;
+                            {
+                              const std::lock_guard<std::mutex> lock(insert_after_head);
+                              refreshed_set->edges_cnt_after_me_in_history = outgoing_edge_cache_pool->head.all_edges_cnt_in_history;
+                              refreshed_set->next = outgoing_edge_cache_pool->head.next;
+                              outgoing_edge_cache_pool->head.all_edges_cnt_in_history += cached_edgeset_ptr->edges.size();
+                              outgoing_edge_cache_pool->head.next = refreshed_set;
+                            }
+                          }
+                        } else {
+                          // I can continue staying in the edge cache only need to do age refreshing
+                          // with a recycling thread running in mind.
+                          auto refreshed_set = new FM::edge_cache_set<EdgeData>(v_i);
+                          for (int idx = 0; idx < n_adj_edges; ++idx) {
+                            refreshed_set->edges.emplace_back(locally_cached_adj[idx]);
+                          }
+                          outgoing_edge_cache[remote_node][s_i][v_i] = refreshed_set;
+                          {
+                            const std::lock_guard<std::mutex> lock(insert_after_head);
+                            refreshed_set->edges_cnt_after_me_in_history = outgoing_edge_cache_pool->head.all_edges_cnt_in_history;
+                            refreshed_set->next = outgoing_edge_cache_pool->head.next;
+                            outgoing_edge_cache_pool->head.all_edges_cnt_in_history += cached_edgeset_ptr->edges.size();
+                            outgoing_edge_cache_pool->head.next = refreshed_set;
+                          }
+                        }
                       }
+                      (*FM::outgoing_edge_cache_hit)++;
                     } else {
                       MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_list_data_win[s_i][thread_id]);
                       MPI_Get(&locally_cached_adj[0], n_adj_edges*unit_size, MPI_CHAR,
@@ -2431,15 +2525,15 @@ public:
                       for (int idx = 0; idx < n_adj_edges; ++idx) {
                         set->edges.emplace_back(locally_cached_adj[idx]);
                       }
-                      bool success = cas(&outgoing_edge_cache[remote_node][s_i][v_i], (FM::edge_cache_set<EdgeData>*)NULL, set);
-                      assert(success);
-                      while (true) {
+                      outgoing_edge_cache[remote_node][s_i][v_i] = set;
+                      {
+                        const std::lock_guard<std::mutex> lock(insert_after_head);
+                        set->edges_cnt_after_me_in_history = outgoing_edge_cache_pool->head.all_edges_cnt_in_history;
                         set->next = outgoing_edge_cache_pool->head.next;
-                        FM::edge_cache_set<EdgeData>* old_val = outgoing_edge_cache_pool->head.next;
-                        success = cas(&outgoing_edge_cache_pool->head.next, old_val, set);
-                        if (success) break;
+                        outgoing_edge_cache_pool->head.all_edges_cnt_in_history += set->edges.size();
+                        outgoing_edge_cache_pool->head.next = set;
                       }
-                      (*FM::outgoing_edge_cache_pool_count) += set->edges.size();
+                      (*FM::outgoing_edge_cache_pool_count) += n_adj_edges;
                       (*FM::outgoing_edge_cache_miss)++;
                     }
                     #else
@@ -2520,13 +2614,10 @@ public:
                       #if ENABLE_EDGE_CACHE == 1
                       auto cached_edgeset_ptr = outgoing_edge_cache[remote_node][s_i][v_i];
                       if (cached_edgeset_ptr != NULL) {
-                        FM::edge_cache_set<EdgeData>* old_ptr = NULL;
-                        while(true) {
-                          old_ptr = outgoing_edge_cache[remote_node][s_i][v_i];
-                          bool success = cas(&outgoing_edge_cache[remote_node][s_i][v_i], old_ptr, (FM::edge_cache_set<EdgeData>*)NULL);
-                          if (success) break;
-                        }
-                        if(unlikely(old_ptr == NULL)) {
+                        bool success = cas(&cached_edgeset_ptr->status, 0, 1);
+                        if (!success) {
+                          // I am already been garbage collected. construct the cached_edgeset from the network.
+                          assert(cached_edgeset_ptr->status == 2);
                           MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_list_data_win[s_i][thread_id]);
                           MPI_Get(&locally_cached_adj[0], n_adj_edges*unit_size, MPI_CHAR,
                                   remote_node, indices[0], n_adj_edges*unit_size, MPI_CHAR, *outgoing_adj_list_data_win[s_i][thread_id]);
@@ -2535,26 +2626,87 @@ public:
                           for (int idx = 0; idx < n_adj_edges; ++idx) {
                             set->edges.emplace_back(locally_cached_adj[idx]);
                           }
-                          bool success = cas(&outgoing_edge_cache[remote_node][s_i][v_i], (FM::edge_cache_set<EdgeData>*)NULL, set);
-                          assert(success);
-                          while (true) {
+                          outgoing_edge_cache[remote_node][s_i][v_i] = set;
+                          {
+                            const std::lock_guard<std::mutex> lock(insert_after_head);
+                            set->edges_cnt_after_me_in_history = outgoing_edge_cache_pool->head.all_edges_cnt_in_history;
                             set->next = outgoing_edge_cache_pool->head.next;
-                            FM::edge_cache_set<EdgeData>* old_val = outgoing_edge_cache_pool->head.next;
-                            success = cas(&outgoing_edge_cache_pool->head.next, old_val, set);
-                            if (success) break;
+                            outgoing_edge_cache_pool->head.all_edges_cnt_in_history += set->edges.size();
+                            outgoing_edge_cache_pool->head.next = set;
                           }
-                          (*FM::outgoing_edge_cache_pool_count) += set->edges.size();
+                          (*FM::outgoing_edge_cache_pool_count) += n_adj_edges;
                           (*FM::outgoing_edge_cache_miss)++;
                         } else {
-                          assert(old_ptr->edges.size() == n_adj_edges);
-                          for(int idx = 0; idx < old_ptr->edges.size(); ++idx) {
-                            locally_cached_adj[idx].neighbour = old_ptr->edges[idx].edge.neighbour;
-                            locally_cached_adj[idx].edge_data = old_ptr->edges[idx].edge.edge_data;
+                          // I haven't been garbage collected and have successfully set my status to ACCESS.
+                          assert(cached_edgeset_ptr->edges.size() == n_adj_edges);
+                          for(int idx = 0; idx < cached_edgeset_ptr->edges.size(); ++idx) {
+                            locally_cached_adj[idx].neighbour = cached_edgeset_ptr->edges[idx].edge.neighbour;
+                            locally_cached_adj[idx].edge_data = cached_edgeset_ptr->edges[idx].edge.edge_data;
                           }
-                          bool success = cas(&outgoing_edge_cache[remote_node][s_i][v_i], (FM::edge_cache_set<EdgeData>*)NULL, old_ptr);
-                          assert(success);
-                          (*FM::outgoing_edge_cache_hit)++;
+                          cached_edgeset_ptr->status = 0;
+
+                          uint64_t diff = outgoing_edge_cache_pool->head.all_edges_cnt_in_history - cached_edgeset_ptr->edges_cnt_after_me_in_history;
+                          if (diff >= FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES) {
+                            // I need to do edge recycling.
+                            bool success = cas(&gc_edgeset_start, (FM::edge_cache_set<EdgeData>*)NULL, cached_edgeset_ptr->next);
+                            if (success) {
+                              // I am the only one recycler. I need to do both age refreshing and edge recycling for list node after me.
+                              auto refreshed_set = new FM::edge_cache_set<EdgeData>(v_i);
+                              for (int idx = 0; idx < cached_edgeset_ptr->edges.size(); ++idx) {
+                                refreshed_set->edges.emplace_back(locally_cached_adj[idx]);
+                              }
+                              outgoing_edge_cache[remote_node][s_i][v_i] = refreshed_set;
+                              {
+                                const std::lock_guard<std::mutex> lock(insert_after_head);
+                                refreshed_set->edges_cnt_after_me_in_history = outgoing_edge_cache_pool->head.all_edges_cnt_in_history;
+                                refreshed_set->next = outgoing_edge_cache_pool->head.next;
+                                outgoing_edge_cache_pool->head.all_edges_cnt_in_history += cached_edgeset_ptr->edges.size();
+                                outgoing_edge_cache_pool->head.next = refreshed_set;
+                              }
+
+                              // do the recycling
+                              for (FM::edge_cache_set<EdgeData>* ptr = gc_edgeset_start; ptr != NULL && ptr->status != 2; ptr = ptr->next) {
+                                while (true) {
+                                  bool success = cas(&ptr->status, 0, 2);
+                                  if (success) break;
+                                }
+                                (*FM::outgoing_edge_cache_pool_count) -= ptr->edges.size();
+                                ptr->edges.clear();
+                              }
+                            } else {
+                              // some other thread is recycling, I will skip this recycling step this time.
+                              // only do age refreshing with a recycling thread running in mind.
+                              auto refreshed_set = new FM::edge_cache_set<EdgeData>(v_i);
+                              for (int idx = 0; idx < n_adj_edges; ++idx) {
+                                refreshed_set->edges.emplace_back(locally_cached_adj[idx]);
+                              }
+                              outgoing_edge_cache[remote_node][s_i][v_i] = refreshed_set;
+                              {
+                                const std::lock_guard<std::mutex> lock(insert_after_head);
+                                refreshed_set->edges_cnt_after_me_in_history = outgoing_edge_cache_pool->head.all_edges_cnt_in_history;
+                                refreshed_set->next = outgoing_edge_cache_pool->head.next;
+                                outgoing_edge_cache_pool->head.all_edges_cnt_in_history += cached_edgeset_ptr->edges.size();
+                                outgoing_edge_cache_pool->head.next = refreshed_set;
+                              }
+                            }
+                          } else {
+                            // I can continue staying in the edge cache only need to do age refreshing
+                            // with a recycling thread running in mind.
+                            auto refreshed_set = new FM::edge_cache_set<EdgeData>(v_i);
+                            for (int idx = 0; idx < n_adj_edges; ++idx) {
+                              refreshed_set->edges.emplace_back(locally_cached_adj[idx]);
+                            }
+                            outgoing_edge_cache[remote_node][s_i][v_i] = refreshed_set;
+                            {
+                              const std::lock_guard<std::mutex> lock(insert_after_head);
+                              refreshed_set->edges_cnt_after_me_in_history = outgoing_edge_cache_pool->head.all_edges_cnt_in_history;
+                              refreshed_set->next = outgoing_edge_cache_pool->head.next;
+                              outgoing_edge_cache_pool->head.all_edges_cnt_in_history += cached_edgeset_ptr->edges.size();
+                              outgoing_edge_cache_pool->head.next = refreshed_set;
+                            }
+                          }
                         }
+                        (*FM::outgoing_edge_cache_hit)++;
                       } else {
                         MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_list_data_win[s_i][thread_id]);
                         MPI_Get(&locally_cached_adj[0], n_adj_edges*unit_size, MPI_CHAR,
@@ -2564,15 +2716,15 @@ public:
                         for (int idx = 0; idx < n_adj_edges; ++idx) {
                           set->edges.emplace_back(locally_cached_adj[idx]);
                         }
-                        bool success = cas(&outgoing_edge_cache[remote_node][s_i][v_i], (FM::edge_cache_set<EdgeData>*)NULL, set);
-                        assert(success);
-                        while (true) {
+                        outgoing_edge_cache[remote_node][s_i][v_i] = set;
+                        {
+                          const std::lock_guard<std::mutex> lock(insert_after_head);
+                          set->edges_cnt_after_me_in_history = outgoing_edge_cache_pool->head.all_edges_cnt_in_history;
                           set->next = outgoing_edge_cache_pool->head.next;
-                          FM::edge_cache_set<EdgeData>* old_val = outgoing_edge_cache_pool->head.next;
-                          success = cas(&outgoing_edge_cache_pool->head.next, old_val, set);
-                          if (success) break;
+                          outgoing_edge_cache_pool->head.all_edges_cnt_in_history += set->edges.size();
+                          outgoing_edge_cache_pool->head.next = set;
                         }
-                        (*FM::outgoing_edge_cache_pool_count) += set->edges.size();
+                        (*FM::outgoing_edge_cache_pool_count) += n_adj_edges;
                         (*FM::outgoing_edge_cache_miss)++;
                       }
                       #else
@@ -2721,6 +2873,11 @@ public:
         #ifdef PRINT_DEBUG_MESSAGES
         fprintf(stderr, "%d receiver thread joined.\n", partition_id);
         #endif
+      // gc_thread_should_end = true;
+      // gc.join();
+      //   #ifdef PRINT_DEBUG_MESSAGES
+      //   fprintf(stderr, "%d gc thread joined.\n", partition_id);
+      //   #endif
       delete [] recv_queue;
     } else {
       // dense selective bitmap
