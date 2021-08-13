@@ -2354,8 +2354,11 @@ public:
               thread_state[t_i]->status = WORKING;
             }
 
+            #if ENABLE_EDGE_CACHE == 1
             FM::edge_cache_set<EdgeData>* gc_edgeset_start = NULL;
             std::mutex insert_after_head;
+            #endif
+
             #pragma omp parallel reduction(+:reducer,reducer2)
             {
               R local_reducer = 0;
@@ -2482,6 +2485,9 @@ public:
                               (*FM::outgoing_edge_cache_pool_count) -= ptr->edges.size();
                               ptr->edges.clear();
                             }
+
+                            // I finished my recycling job, set gc_edgeset_start to NULL so that others have a chance to be a recycler.
+                            gc_edgeset_start = NULL;
                           } else {
                             // some other thread is recycling, I will skip this recycling step this time.
                             // only do age refreshing with a recycling thread running in mind.
@@ -2673,6 +2679,9 @@ public:
                                 (*FM::outgoing_edge_cache_pool_count) -= ptr->edges.size();
                                 ptr->edges.clear();
                               }
+
+                              // I finished my recycling job, set gc_edgeset_start to NULL so that others have a chance to be a recycler.
+                              gc_edgeset_start = NULL;
                             } else {
                               // some other thread is recycling, I will skip this recycling step this time.
                               // only do age refreshing with a recycling thread running in mind.
