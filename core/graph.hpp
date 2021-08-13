@@ -141,10 +141,23 @@ public:
 
   Graph() {
     threads = numa_num_configured_cpus();
-    sockets = 1; //numa_num_configured_nodes();
+    sockets = 1; // numa_num_configured_nodes();
     threads_per_socket = threads / sockets;
 
     init();
+  }
+
+  ~Graph() {
+    for (int i=0;i<partitions;i++) {
+      for (int s_i=0;s_i<sockets;s_i++) {
+        numa_free(send_buffer[i][s_i], sizeof(MessageBuffer));
+        numa_free(recv_buffer[i][s_i], sizeof(MessageBuffer));
+      }
+      delete [] send_buffer[i];
+      delete [] recv_buffer[i];
+    }
+    delete [] send_buffer;
+    delete [] recv_buffer;
   }
 
   inline int get_socket_id(int thread_id) {
@@ -1455,6 +1468,8 @@ public:
       }
       reducer += local_reducer;
     }
+
+    fprintf(stderr, "%d: reducer = %d\n", partition_id, reducer);
     R global_reducer;
     MPI_Datatype dt = get_mpi_data_type<R>();
     MPI_Allreduce(&reducer, &global_reducer, 1, dt, MPI_SUM, MPI_COMM_WORLD);
@@ -1505,7 +1520,8 @@ public:
       },
       active
     );
-    bool sparse = (active_edges < edges / 20);
+    // bool sparse = (active_edges < edges / 20);
+    bool sparse = true;
     if (sparse) {
       for (int i=0;i<partitions;i++) {
         for (int s_i=0;s_i<sockets;s_i++) {
@@ -1596,9 +1612,12 @@ public:
         } else {
           used_buffer = recv_buffer[i];
         }
+
+        R reducer2 = 0;
         for (int s_i=0;s_i<sockets;s_i++) {
           MsgUnit<M> * buffer = (MsgUnit<M> *)used_buffer[s_i]->data;
           size_t buffer_size = used_buffer[s_i]->count;
+          fprintf(stderr, "%d: buffer_size = %d at step %d\n", partition_id, buffer_size, step);
           for (int t_i=0;t_i<threads;t_i++) {
             // int s_i = get_socket_id(t_i);
             int s_j = get_socket_offset(t_i);
@@ -1610,7 +1629,7 @@ public:
             }
             thread_state[t_i]->status = WORKING;
           }
-          #pragma omp parallel reduction(+:reducer)
+          #pragma omp parallel reduction(+:reducer,reducer2)
           {
             R local_reducer = 0;
             int thread_id = omp_get_thread_num();
@@ -1654,8 +1673,10 @@ public:
               }
             }
             reducer += local_reducer;
+            reducer2 += local_reducer;
           }
         }
+        fprintf(stderr, "%d: reducer2 = %d at step %d\n", partition_id, reducer2, step);
       }
       send_thread.join();
       recv_thread.join();
