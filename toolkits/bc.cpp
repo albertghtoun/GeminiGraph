@@ -422,7 +422,7 @@ int main(int argc, char ** argv) {
   #else
   FM::compute(std::function<void(Graph<Empty>*, VertexId)>(compute), graph->partition_id, graph, root);
   #endif
-  for (int run=0;run<5;run++) {
+  for (int run=0;run<1;run++) {
     #if COMPACT
     FM::compute(std::function<void(Graph<Empty>*, VertexId)>(compute_compact), graph->partition_id, graph, root);
     #else

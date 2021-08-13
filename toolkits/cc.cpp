@@ -112,10 +112,10 @@ int main(int argc, char ** argv) {
   MPI_Instance mpi(&argc, &argv);
 
   if (argc<3) {
-    printf("cc [file] [vertices] [n_compute]\n");
+    printf("cc [file] [vertices] [unused_arg=""] [n_compute]\n");
     exit(-1);
   }
-  FM::init_fm_runtime(std::atoi(argv[3]));
+  FM::init_fm_runtime(std::atoi(argv[4]));
 
   Graph<Empty> * graph;
   graph = new Graph<Empty>();
@@ -123,7 +123,7 @@ int main(int argc, char ** argv) {
   graph->load_directed(argv[1], std::atoi(argv[2]));
   
   FM::compute(std::function<void(Graph<Empty>*)>(compute), graph->partition_id, graph);
-  for (int run=0;run<5;run++) {
+  for (int run=0;run<1;run++) {
     FM::compute(std::function<void(Graph<Empty>*)>(compute), graph->partition_id, graph);
   }
 

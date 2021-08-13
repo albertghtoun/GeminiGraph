@@ -123,7 +123,7 @@ int main(int argc, char ** argv) {
   graph->load_directed(argv[1], std::atoi(argv[2]));
 
   FM::compute(std::function<void(Graph<Empty>*, VertexId)>(compute), graph->partition_id, graph, root);
-  for (int run=0;run<5;run++) {
+  for (int run=0;run<1;run++) {
     FM::compute(std::function<void(Graph<Empty>*, VertexId)>(compute), graph->partition_id, graph, root);
   }
   delete graph;

@@ -143,7 +143,7 @@ int main(int argc, char ** argv) {
   graph->load_directed(argv[1], std::atoi(argv[2]));
   int iterations = std::atoi(argv[3]);
   FM::compute(std::function<void(Graph<Empty>*, int)>(compute), graph->partition_id, graph, iterations);
-  for (int run=0;run<5;run++) {
+  for (int run=0;run<1;run++) {
     FM::compute(std::function<void(Graph<Empty>*, int)>(compute), graph->partition_id, graph, iterations);
   }
 
