@@ -1,0 +1,5 @@
+Running app=bfs graph=tw n=2 m=1
+Access denied by pam_slurm_adopt: you have no active jobs on this node
+Authentication failed.
+Access denied by pam_slurm_adopt: you have no active jobs on this node
+Authentication failed.

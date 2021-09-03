@@ -1,0 +1,3 @@
+Running app=bfs graph=tw n=2 m=1
+Warning: Permanently added 'e07-07,10.125.16.73' (ECDSA) to the list of known hosts.
+Warning: Permanently added 'e07-08,10.125.16.79' (ECDSA) to the list of known hosts.

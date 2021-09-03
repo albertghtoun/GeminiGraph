@@ -1,0 +1,9 @@
+Running app=bfs graph=lj n=4 m=2
+[proxy:0:1@e16-12.hpc.usc.edu] HYDU_sock_connect (utils/sock/sock.c:113): unable to get host address for discovery1.usc.edu
+[proxy:0:1@e16-12.hpc.usc.edu] main (pm/pmiserv/pmip.c:183): unable to connect to server discovery1.usc.edu at port 28748 (check for firewalls!)
+[proxy:0:2@e16-24.hpc.usc.edu] HYDU_sock_connect (utils/sock/sock.c:113): unable to get host address for discovery1.usc.edu
+[proxy:0:2@e16-24.hpc.usc.edu] main (pm/pmiserv/pmip.c:183): unable to connect to server discovery1.usc.edu at port 28748 (check for firewalls!)
+[proxy:0:3@e17-09.hpc.usc.edu] HYDU_sock_connect (utils/sock/sock.c:113): unable to get host address for discovery1.usc.edu
+[proxy:0:3@e17-09.hpc.usc.edu] main (pm/pmiserv/pmip.c:183): unable to connect to server discovery1.usc.edu at port 28748 (check for firewalls!)
+[proxy:0:0@d11-19.hpc.usc.edu] HYDU_sock_connect (utils/sock/sock.c:113): unable to get host address for discovery1.usc.edu
+[proxy:0:0@d11-19.hpc.usc.edu] main (pm/pmiserv/pmip.c:183): unable to connect to server discovery1.usc.edu at port 28748 (check for firewalls!)

@@ -1,0 +1,85 @@
+Running app=bfs graph=lj n=2 m=1
+thread support level provided by MPI: MPI_THREAD_MULTIPLE
+load directed graph...|V| = 5363260, |E| = 79023142
+|V'_0| = 2945024 |E^dense_0| = 37368084
+|V'_1_0| = 2418236 |E^dense_1_0| = 41655058
+|V'_1| = 2418236 |E^dense_1| = 41655058
+|V'_0_0| = 2945024 |E^dense_0_0| = 37368084
+machine(0) got 37059103 sparse mode edges
+0: sockets = 1
+machine(1) got 41964039 sparse mode edges
+1: sockets = 1
+part(0) E_0 has 37059103 sparse mode edges
+0: CCC: 2c8cc000
+0: DDD
+0: EEEE
+part(1) E_0 has 41964039 sparse mode edges
+1: CCC: 63a23000
+1: DDD
+1: EEEE
+1: FFFF: tid=0
+0: FFFF: tid=0
+1: EEEE
+0: EEEE
+1: FFFF: tid=1
+0: FFFF: tid=1
+1: EEEE
+0: EEEE
+1: FFFF: tid=2
+0: FFFF: tid=2
+1: EEEE
+0: EEEE
+1: FFFF: tid=3
+0: FFFF: tid=3
+1: EEEE
+0: EEEE
+1: FFFF: tid=4
+0: FFFF: tid=4
+1: EEEE
+0: EEEE
+1: FFFF: tid=5
+1: EEEE
+0: FFFF: tid=5
+1: FFFF: tid=6
+0: EEEE
+1: EEEE
+0: FFFF: tid=6
+1: FFFF: tid=7
+0: EEEE
+1: EEEE
+0: FFFF: tid=7
+1: FFFF: tid=8
+1: EEEE
+1: FFFF: tid=9
+1: EEEE
+0: EEEE
+0: FFFF: tid=8
+0: EEEE
+0: FFFF: tid=9
+0: EEEE
+0: FFFF: tid=10
+0: EEEE
+1: FFFF: tid=10
+1: EEEE
+1: FFFF: tid=11
+1: EEEE
+0: FFFF: tid=11
+0: EEEE
+0: FFFF: tid=12
+0: EEEE
+1: FFFF: tid=12
+1: EEEE
+1: FFFF: tid=13
+1: EEEE
+1: FFFF: tid=14
+1: EEEE
+0: FFFF: tid=13
+0: EEEE
+0: FFFF: tid=14
+0: EEEE
+0: FFFF: tid=15
+1: FFFF: tid=15
+1: AAAAA
+0: AAAAA
+1: preparing for dense mode graph data
+0: preparing for dense mode graph data

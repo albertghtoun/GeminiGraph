@@ -1,0 +1,1 @@
+Running app=bfs graph=lj n=4 m=2

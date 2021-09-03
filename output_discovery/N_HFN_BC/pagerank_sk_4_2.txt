@@ -1,0 +1,40 @@
+Running app=pagerank graph=sk n=4 m=2
+thread support level provided by MPI: MPI_THREAD_MULTIPLE
+load directed graph...|V| = 50636073, |E| = 1949412601
+|V'_0| = 13856768 |E^dense_0| = 458495486
+|V'_1| = 12132352 |E^dense_1| = 499849589
+|V'_2_0| = 12279808 |E^dense_2_0| = 496279852
+|V'_1_0| = 12132352 |E^dense_1_0| = 499849589
+|V'_3_0| = 12367145 |E^dense_3_0| = 494787674
+|V'_2| = 12279808 |E^dense_2| = 496279852
+|V'_3| = 12367145 |E^dense_3| = 494787674
+|V'_0_0| = 13856768 |E^dense_0_0| = 458495486
+machine(3) got 522127487 sparse mode edges
+machine(2) got 482807332 sparse mode edges
+machine(1) got 486710347 sparse mode edges
+machine(0) got 457767435 sparse mode edges
+part(2) E_0 has 482807332 sparse mode edges
+part(0) E_0 has 457767435 sparse mode edges
+part(1) E_0 has 486710347 sparse mode edges
+part(3) E_0 has 522127487 sparse mode edges
+
+===================================================================================
+=   BAD TERMINATION OF ONE OF YOUR APPLICATION PROCESSES
+=   PID 3780 RUNNING AT e13-46
+=   EXIT CODE: 9
+=   CLEANING UP REMAINING PROCESSES
+=   YOU CAN IGNORE THE BELOW CLEANUP MESSAGES
+===================================================================================
+[proxy:0:2@e13-45.hpc.usc.edu] HYD_pmcd_pmip_control_cmd_cb (pm/pmiserv/pmip_cb.c:878): assert (!closed) failed
+[proxy:0:2@e13-45.hpc.usc.edu] HYDT_dmxu_poll_wait_for_event (tools/demux/demux_poll.c:77): callback returned error status
+[proxy:0:2@e13-45.hpc.usc.edu] main (pm/pmiserv/pmip.c:200): demux engine error waiting for event
+[proxy:0:1@e13-44.hpc.usc.edu] HYD_pmcd_pmip_control_cmd_cb (pm/pmiserv/pmip_cb.c:878): assert (!closed) failed
+[proxy:0:1@e13-44.hpc.usc.edu] HYDT_dmxu_poll_wait_for_event (tools/demux/demux_poll.c:77): callback returned error status
+[proxy:0:1@e13-44.hpc.usc.edu] main (pm/pmiserv/pmip.c:200): demux engine error waiting for event
+[proxy:0:0@e13-43.hpc.usc.edu] HYD_pmcd_pmip_control_cmd_cb (pm/pmiserv/pmip_cb.c:878): assert (!closed) failed
+[proxy:0:0@e13-43.hpc.usc.edu] HYDT_dmxu_poll_wait_for_event (tools/demux/demux_poll.c:77): callback returned error status
+[proxy:0:0@e13-43.hpc.usc.edu] main (pm/pmiserv/pmip.c:200): demux engine error waiting for event
+[mpiexec@discovery2.hpc.usc.edu] HYDT_bscu_wait_for_completion (tools/bootstrap/utils/bscu_wait.c:75): one of the processes terminated badly; aborting
+[mpiexec@discovery2.hpc.usc.edu] HYDT_bsci_wait_for_completion (tools/bootstrap/src/bsci_wait.c:22): launcher returned error waiting for completion
+[mpiexec@discovery2.hpc.usc.edu] HYD_pmci_wait_for_completion (pm/pmiserv/pmiserv_pmci.c:215): launcher returned error waiting for completion
+[mpiexec@discovery2.hpc.usc.edu] main (ui/mpich/mpiexec.c:336): process manager error waiting for completion

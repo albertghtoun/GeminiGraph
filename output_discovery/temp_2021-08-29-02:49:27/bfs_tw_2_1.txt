@@ -1,0 +1,674 @@
+Running app=bfs graph=tw n=2 m=1
+thread support level provided by MPI: MPI_THREAD_MULTIPLE
+load directed graph...|V| = 41652230, |E| = 1468365182
+|V'_0| = 22462464 |E^dense_0| = 719966205
+|V'_1| = 19189766 |E^dense_1| = 748398977
+|V'_1_0| = 19189766 |E^dense_1_0| = 748398977
+|V'_0_0| = 22462464 |E^dense_0_0| = 719966205
+machine(1) got 588487611 sparse mode edges
+1: sockets = 1
+machine(0) got 879877571 sparse mode edges
+0: sockets = 1
+part(0) E_0 has 879877571 sparse mode edges
+0: CCC: 83f92000
+0: DDD
+0: EEEE
+part(1) E_0 has 588487611 sparse mode edges
+1: CCC: 4ae22000
+1: DDD
+1: EEEE, indices_start=0, outgoing_edges[s_i]=588487611, size=2353950444
+1: FFFF: tid=0, err=0
+0: FFFF: tid=0
+1: EEEE, indices_start=0, outgoing_edges[s_i]=588487611, size=2353950444
+0: EEEE
+1: FFFF: tid=1, err=0
+0: FFFF: tid=1
+1: EEEE, indices_start=0, outgoing_edges[s_i]=588487611, size=2353950444
+0: EEEE
+1: FFFF: tid=2, err=0
+0: FFFF: tid=2
+1: EEEE, indices_start=0, outgoing_edges[s_i]=588487611, size=2353950444
+0: EEEE
+1: FFFF: tid=3, err=0
+0: FFFF: tid=3
+1: EEEE, indices_start=0, outgoing_edges[s_i]=588487611, size=2353950444
+0: EEEE
+1: FFFF: tid=4, err=0
+0: FFFF: tid=4
+1: EEEE, indices_start=0, outgoing_edges[s_i]=588487611, size=2353950444
+0: EEEE
+1: FFFF: tid=5, err=0
+0: FFFF: tid=5
+1: EEEE, indices_start=0, outgoing_edges[s_i]=588487611, size=2353950444
+0: EEEE
+0: FFFF: tid=6
+1: FFFF: tid=6, err=0
+0: EEEE
+1: EEEE, indices_start=0, outgoing_edges[s_i]=588487611, size=2353950444
+0: FFFF: tid=7
+1: FFFF: tid=7, err=0
+0: EEEE
+1: EEEE, indices_start=0, outgoing_edges[s_i]=588487611, size=2353950444
+0: FFFF: tid=8
+1: FFFF: tid=8, err=0
+0: EEEE
+1: EEEE, indices_start=0, outgoing_edges[s_i]=588487611, size=2353950444
+1: FFFF: tid=9, err=0
+0: FFFF: tid=9
+0: EEEE
+1: EEEE, indices_start=0, outgoing_edges[s_i]=588487611, size=2353950444
+0: FFFF: tid=10
+1: FFFF: tid=10, err=0
+0: EEEE
+1: EEEE, indices_start=0, outgoing_edges[s_i]=588487611, size=2353950444
+1: FFFF: tid=11, err=0
+0: FFFF: tid=11
+0: EEEE
+1: EEEE, indices_start=0, outgoing_edges[s_i]=588487611, size=2353950444
+0: FFFF: tid=12
+1: FFFF: tid=12, err=0
+0: EEEE
+1: EEEE, indices_start=0, outgoing_edges[s_i]=588487611, size=2353950444
+1: FFFF: tid=13, err=0
+1: EEEE, indices_start=0, outgoing_edges[s_i]=588487611, size=2353950444
+0: FFFF: tid=13
+0: EEEE
+0: FFFF: tid=14
+1: FFFF: tid=14, err=0
+0: EEEE
+1: EEEE, indices_start=0, outgoing_edges[s_i]=588487611, size=2353950444
+0: FFFF: tid=15
+1: FFFF: tid=15, err=0
+0: EEEE
+1: EEEE, indices_start=2147483648, outgoing_edges[s_i]=588487611, size=18446744067473567468
+0: FFFF: tid=0
+1: FFFF: tid=0, err=0
+0: EEEE
+1: EEEE, indices_start=2147483648, outgoing_edges[s_i]=588487611, size=18446744067473567468
+0: FFFF: tid=1
+1: FFFF: tid=1, err=0
+0: EEEE
+1: EEEE, indices_start=2147483648, outgoing_edges[s_i]=588487611, size=18446744067473567468
+0: FFFF: tid=2
+1: FFFF: tid=2, err=0
+0: EEEE
+1: EEEE, indices_start=2147483648, outgoing_edges[s_i]=588487611, size=18446744067473567468
+0: FFFF: tid=3
+0: EEEE
+1: FFFF: tid=3, err=0
+1: EEEE, indices_start=2147483648, outgoing_edges[s_i]=588487611, size=18446744067473567468
+1: FFFF: tid=4, err=0
+1: EEEE, indices_start=2147483648, outgoing_edges[s_i]=588487611, size=18446744067473567468
+0: FFFF: tid=4
+1: FFFF: tid=5, err=0
+0: EEEE
+1: EEEE, indices_start=2147483648, outgoing_edges[s_i]=588487611, size=18446744067473567468
+1: FFFF: tid=6, err=0
+0: FFFF: tid=5
+1: EEEE, indices_start=2147483648, outgoing_edges[s_i]=588487611, size=18446744067473567468
+0: EEEE
+0: FFFF: tid=6
+0: EEEE
+0: FFFF: tid=7
+0: EEEE
+1: FFFF: tid=7, err=0
+1: EEEE, indices_start=2147483648, outgoing_edges[s_i]=588487611, size=18446744067473567468
+0: FFFF: tid=8
+0: EEEE
+1: FFFF: tid=8, err=0
+1: EEEE, indices_start=2147483648, outgoing_edges[s_i]=588487611, size=18446744067473567468
+0: FFFF: tid=9
+0: EEEE
+1: FFFF: tid=9, err=0
+1: EEEE, indices_start=2147483648, outgoing_edges[s_i]=588487611, size=18446744067473567468
+1: FFFF: tid=10, err=0
+0: FFFF: tid=10
+0: EEEE
+1: EEEE, indices_start=2147483648, outgoing_edges[s_i]=588487611, size=18446744067473567468
+1: FFFF: tid=11, err=0
+0: FFFF: tid=11
+0: EEEE
+1: EEEE, indices_start=2147483648, outgoing_edges[s_i]=588487611, size=18446744067473567468
+0: FFFF: tid=12
+0: EEEE
+1: FFFF: tid=12, err=0
+1: EEEE, indices_start=2147483648, outgoing_edges[s_i]=588487611, size=18446744067473567468
+0: FFFF: tid=13
+0: EEEE
+1: FFFF: tid=13, err=0
+1: EEEE, indices_start=2147483648, outgoing_edges[s_i]=588487611, size=18446744067473567468
+1: FFFF: tid=14, err=0
+1: EEEE, indices_start=2147483648, outgoing_edges[s_i]=588487611, size=18446744067473567468
+0: FFFF: tid=14
+1: FFFF: tid=15, err=0
+0: EEEE
+1: EEEE, indices_start=4294967296, outgoing_edges[s_i]=588487611, size=18446744058883632876
+0: FFFF: tid=15
+0: EEEE
+1: FFFF: tid=0, err=0
+1: EEEE, indices_start=4294967296, outgoing_edges[s_i]=588487611, size=18446744058883632876
+0: FFFF: tid=0
+0: EEEE
+1: FFFF: tid=1, err=0
+1: EEEE, indices_start=4294967296, outgoing_edges[s_i]=588487611, size=18446744058883632876
+0: FFFF: tid=1
+0: EEEE
+1: FFFF: tid=2, err=0
+1: EEEE, indices_start=4294967296, outgoing_edges[s_i]=588487611, size=18446744058883632876
+0: FFFF: tid=2
+0: EEEE
+1: FFFF: tid=3, err=0
+1: EEEE, indices_start=4294967296, outgoing_edges[s_i]=588487611, size=18446744058883632876
+0: FFFF: tid=3
+0: EEEE
+1: FFFF: tid=4, err=0
+1: EEEE, indices_start=4294967296, outgoing_edges[s_i]=588487611, size=18446744058883632876
+0: FFFF: tid=4
+0: EEEE
+1: FFFF: tid=5, err=0
+1: EEEE, indices_start=4294967296, outgoing_edges[s_i]=588487611, size=18446744058883632876
+0: FFFF: tid=5
+0: EEEE
+1: FFFF: tid=6, err=0
+1: EEEE, indices_start=4294967296, outgoing_edges[s_i]=588487611, size=18446744058883632876
+0: FFFF: tid=6
+0: EEEE
+0: FFFF: tid=7
+1: FFFF: tid=7, err=0
+0: EEEE
+1: EEEE, indices_start=4294967296, outgoing_edges[s_i]=588487611, size=18446744058883632876
+1: FFFF: tid=8, err=0
+0: FFFF: tid=8
+1: EEEE, indices_start=4294967296, outgoing_edges[s_i]=588487611, size=18446744058883632876
+0: EEEE
+1: FFFF: tid=9, err=0
+0: FFFF: tid=9
+1: EEEE, indices_start=4294967296, outgoing_edges[s_i]=588487611, size=18446744058883632876
+0: EEEE
+0: FFFF: tid=10
+1: FFFF: tid=10, err=0
+0: EEEE
+1: EEEE, indices_start=4294967296, outgoing_edges[s_i]=588487611, size=18446744058883632876
+0: FFFF: tid=11
+1: FFFF: tid=11, err=0
+0: EEEE
+1: EEEE, indices_start=4294967296, outgoing_edges[s_i]=588487611, size=18446744058883632876
+1: FFFF: tid=12, err=0
+0: FFFF: tid=12
+1: EEEE, indices_start=4294967296, outgoing_edges[s_i]=588487611, size=18446744058883632876
+0: EEEE
+1: FFFF: tid=13, err=0
+0: FFFF: tid=13
+1: EEEE, indices_start=4294967296, outgoing_edges[s_i]=588487611, size=18446744058883632876
+0: EEEE
+0: FFFF: tid=14
+1: FFFF: tid=14, err=0
+0: EEEE
+1: EEEE, indices_start=4294967296, outgoing_edges[s_i]=588487611, size=18446744058883632876
+0: FFFF: tid=15
+1: FFFF: tid=15, err=0
+0: EEEE
+1: EEEE, indices_start=6442450944, outgoing_edges[s_i]=588487611, size=18446744050293698284
+0: FFFF: tid=0
+0: EEEE
+1: FFFF: tid=0, err=0
+1: EEEE, indices_start=6442450944, outgoing_edges[s_i]=588487611, size=18446744050293698284
+0: FFFF: tid=1
+0: EEEE
+1: FFFF: tid=1, err=0
+1: EEEE, indices_start=6442450944, outgoing_edges[s_i]=588487611, size=18446744050293698284
+0: FFFF: tid=2
+0: EEEE
+1: FFFF: tid=2, err=0
+1: EEEE, indices_start=6442450944, outgoing_edges[s_i]=588487611, size=18446744050293698284
+1: FFFF: tid=3, err=0
+1: EEEE, indices_start=6442450944, outgoing_edges[s_i]=588487611, size=18446744050293698284
+1: FFFF: tid=4, err=0
+0: FFFF: tid=3
+1: EEEE, indices_start=6442450944, outgoing_edges[s_i]=588487611, size=18446744050293698284
+0: EEEE
+0: FFFF: tid=4
+0: EEEE
+1: FFFF: tid=5, err=0
+1: EEEE, indices_start=6442450944, outgoing_edges[s_i]=588487611, size=18446744050293698284
+0: FFFF: tid=5
+0: EEEE
+0: FFFF: tid=6
+0: EEEE
+1: FFFF: tid=6, err=0
+1: EEEE, indices_start=6442450944, outgoing_edges[s_i]=588487611, size=18446744050293698284
+0: FFFF: tid=7
+0: EEEE
+1: FFFF: tid=7, err=0
+1: EEEE, indices_start=6442450944, outgoing_edges[s_i]=588487611, size=18446744050293698284
+0: FFFF: tid=8
+0: EEEE
+1: FFFF: tid=8, err=0
+1: EEEE, indices_start=6442450944, outgoing_edges[s_i]=588487611, size=18446744050293698284
+0: FFFF: tid=9
+0: EEEE
+1: FFFF: tid=9, err=0
+1: EEEE, indices_start=6442450944, outgoing_edges[s_i]=588487611, size=18446744050293698284
+1: FFFF: tid=10, err=0
+0: FFFF: tid=10
+0: EEEE
+1: EEEE, indices_start=6442450944, outgoing_edges[s_i]=588487611, size=18446744050293698284
+1: FFFF: tid=11, err=0
+1: EEEE, indices_start=6442450944, outgoing_edges[s_i]=588487611, size=18446744050293698284
+0: FFFF: tid=11
+0: EEEE
+0: FFFF: tid=12
+1: FFFF: tid=12, err=0
+0: EEEE
+1: EEEE, indices_start=6442450944, outgoing_edges[s_i]=588487611, size=18446744050293698284
+0: FFFF: tid=13
+1: FFFF: tid=13, err=0
+0: EEEE
+1: EEEE, indices_start=6442450944, outgoing_edges[s_i]=588487611, size=18446744050293698284
+0: FFFF: tid=14
+1: FFFF: tid=14, err=0
+0: EEEE
+1: EEEE, indices_start=6442450944, outgoing_edges[s_i]=588487611, size=18446744050293698284
+0: FFFF: tid=15
+0: EEEE
+1: FFFF: tid=15, err=0
+1: EEEE, indices_start=8589934592, outgoing_edges[s_i]=588487611, size=18446744041703763692
+0: FFFF: tid=0
+0: EEEE
+1: FFFF: tid=0, err=0
+1: EEEE, indices_start=8589934592, outgoing_edges[s_i]=588487611, size=18446744041703763692
+0: FFFF: tid=1
+0: EEEE
+1: FFFF: tid=1, err=0
+1: EEEE, indices_start=8589934592, outgoing_edges[s_i]=588487611, size=18446744041703763692
+0: FFFF: tid=2
+1: FFFF: tid=2, err=0
+0: EEEE
+1: EEEE, indices_start=8589934592, outgoing_edges[s_i]=588487611, size=18446744041703763692
+0: FFFF: tid=3
+0: EEEE
+1: FFFF: tid=3, err=0
+1: EEEE, indices_start=8589934592, outgoing_edges[s_i]=588487611, size=18446744041703763692
+0: FFFF: tid=4
+1: FFFF: tid=4, err=0
+0: EEEE
+1: EEEE, indices_start=8589934592, outgoing_edges[s_i]=588487611, size=18446744041703763692
+0: FFFF: tid=5
+0: EEEE
+1: FFFF: tid=5, err=0
+1: EEEE, indices_start=8589934592, outgoing_edges[s_i]=588487611, size=18446744041703763692
+0: FFFF: tid=6
+0: EEEE
+1: FFFF: tid=6, err=0
+1: EEEE, indices_start=8589934592, outgoing_edges[s_i]=588487611, size=18446744041703763692
+0: FFFF: tid=7
+0: EEEE
+1: FFFF: tid=7, err=0
+1: EEEE, indices_start=8589934592, outgoing_edges[s_i]=588487611, size=18446744041703763692
+0: FFFF: tid=8
+0: EEEE
+1: FFFF: tid=8, err=0
+1: EEEE, indices_start=8589934592, outgoing_edges[s_i]=588487611, size=18446744041703763692
+0: FFFF: tid=9
+0: EEEE
+1: FFFF: tid=9, err=0
+1: EEEE, indices_start=8589934592, outgoing_edges[s_i]=588487611, size=18446744041703763692
+0: FFFF: tid=10
+0: EEEE
+1: FFFF: tid=10, err=0
+1: EEEE, indices_start=8589934592, outgoing_edges[s_i]=588487611, size=18446744041703763692
+1: FFFF: tid=11, err=0
+0: FFFF: tid=11
+0: EEEE
+1: EEEE, indices_start=8589934592, outgoing_edges[s_i]=588487611, size=18446744041703763692
+1: FFFF: tid=12, err=0
+1: EEEE, indices_start=8589934592, outgoing_edges[s_i]=588487611, size=18446744041703763692
+0: FFFF: tid=12
+0: EEEE
+1: FFFF: tid=13, err=0
+0: FFFF: tid=13
+0: EEEE
+1: EEEE, indices_start=8589934592, outgoing_edges[s_i]=588487611, size=18446744041703763692
+0: FFFF: tid=14
+0: EEEE
+1: FFFF: tid=14, err=0
+1: EEEE, indices_start=8589934592, outgoing_edges[s_i]=588487611, size=18446744041703763692
+0: FFFF: tid=15
+0: EEEE
+1: FFFF: tid=15, err=0
+1: EEEE, indices_start=10737418240, outgoing_edges[s_i]=588487611, size=18446744033113829100
+0: FFFF: tid=0
+0: EEEE
+1: FFFF: tid=0, err=0
+1: EEEE, indices_start=10737418240, outgoing_edges[s_i]=588487611, size=18446744033113829100
+0: FFFF: tid=1
+0: EEEE
+1: FFFF: tid=1, err=0
+1: EEEE, indices_start=10737418240, outgoing_edges[s_i]=588487611, size=18446744033113829100
+0: FFFF: tid=2
+0: EEEE
+1: FFFF: tid=2, err=0
+1: EEEE, indices_start=10737418240, outgoing_edges[s_i]=588487611, size=18446744033113829100
+1: FFFF: tid=3, err=0
+1: EEEE, indices_start=10737418240, outgoing_edges[s_i]=588487611, size=18446744033113829100
+0: FFFF: tid=3
+0: EEEE
+1: FFFF: tid=4, err=0
+0: FFFF: tid=4
+1: EEEE, indices_start=10737418240, outgoing_edges[s_i]=588487611, size=18446744033113829100
+0: EEEE
+1: FFFF: tid=5, err=0
+1: EEEE, indices_start=10737418240, outgoing_edges[s_i]=588487611, size=18446744033113829100
+0: FFFF: tid=5
+0: EEEE
+1: FFFF: tid=6, err=0
+1: EEEE, indices_start=10737418240, outgoing_edges[s_i]=588487611, size=18446744033113829100
+0: FFFF: tid=6
+0: EEEE
+0: FFFF: tid=7
+0: EEEE
+1: FFFF: tid=7, err=0
+1: EEEE, indices_start=10737418240, outgoing_edges[s_i]=588487611, size=18446744033113829100
+0: FFFF: tid=8
+0: EEEE
+1: FFFF: tid=8, err=0
+1: EEEE, indices_start=10737418240, outgoing_edges[s_i]=588487611, size=18446744033113829100
+1: FFFF: tid=9, err=0
+0: FFFF: tid=9
+1: EEEE, indices_start=10737418240, outgoing_edges[s_i]=588487611, size=18446744033113829100
+0: EEEE
+0: FFFF: tid=10
+0: EEEE
+1: FFFF: tid=10, err=0
+1: EEEE, indices_start=10737418240, outgoing_edges[s_i]=588487611, size=18446744033113829100
+0: FFFF: tid=11
+1: FFFF: tid=11, err=0
+0: EEEE
+1: EEEE, indices_start=10737418240, outgoing_edges[s_i]=588487611, size=18446744033113829100
+1: FFFF: tid=12, err=0
+1: EEEE, indices_start=10737418240, outgoing_edges[s_i]=588487611, size=18446744033113829100
+0: FFFF: tid=12
+1: FFFF: tid=13, err=0
+0: EEEE
+1: EEEE, indices_start=10737418240, outgoing_edges[s_i]=588487611, size=18446744033113829100
+0: FFFF: tid=13
+0: EEEE
+0: FFFF: tid=14
+0: EEEE
+1: FFFF: tid=14, err=0
+1: EEEE, indices_start=10737418240, outgoing_edges[s_i]=588487611, size=18446744033113829100
+0: FFFF: tid=15
+0: EEEE
+1: FFFF: tid=15, err=0
+1: EEEE, indices_start=12884901888, outgoing_edges[s_i]=588487611, size=18446744024523894508
+0: FFFF: tid=0
+0: EEEE
+0: FFFF: tid=1
+1: FFFF: tid=0, err=0
+1: EEEE, indices_start=12884901888, outgoing_edges[s_i]=588487611, size=18446744024523894508
+1: FFFF: tid=1, err=0
+1: EEEE, indices_start=12884901888, outgoing_edges[s_i]=588487611, size=18446744024523894508
+0: EEEE
+0: FFFF: tid=2
+1: FFFF: tid=2, err=0
+1: EEEE, indices_start=12884901888, outgoing_edges[s_i]=588487611, size=18446744024523894508
+0: EEEE
+1: FFFF: tid=3, err=0
+0: FFFF: tid=3
+1: EEEE, indices_start=12884901888, outgoing_edges[s_i]=588487611, size=18446744024523894508
+0: EEEE
+0: FFFF: tid=4
+0: EEEE
+1: FFFF: tid=4, err=0
+1: EEEE, indices_start=12884901888, outgoing_edges[s_i]=588487611, size=18446744024523894508
+0: FFFF: tid=5
+0: EEEE
+1: FFFF: tid=5, err=0
+1: EEEE, indices_start=12884901888, outgoing_edges[s_i]=588487611, size=18446744024523894508
+0: FFFF: tid=6
+0: EEEE
+1: FFFF: tid=6, err=0
+1: EEEE, indices_start=12884901888, outgoing_edges[s_i]=588487611, size=18446744024523894508
+0: FFFF: tid=7
+0: EEEE
+1: FFFF: tid=7, err=0
+1: EEEE, indices_start=12884901888, outgoing_edges[s_i]=588487611, size=18446744024523894508
+0: FFFF: tid=8
+0: EEEE
+1: FFFF: tid=8, err=0
+1: EEEE, indices_start=12884901888, outgoing_edges[s_i]=588487611, size=18446744024523894508
+1: FFFF: tid=9, err=0
+0: FFFF: tid=9
+0: EEEE
+1: EEEE, indices_start=12884901888, outgoing_edges[s_i]=588487611, size=18446744024523894508
+1: FFFF: tid=10, err=0
+1: EEEE, indices_start=12884901888, outgoing_edges[s_i]=588487611, size=18446744024523894508
+0: FFFF: tid=10
+0: EEEE
+1: FFFF: tid=11, err=0
+1: EEEE, indices_start=12884901888, outgoing_edges[s_i]=588487611, size=18446744024523894508
+0: FFFF: tid=11
+0: EEEE
+0: FFFF: tid=12
+1: FFFF: tid=12, err=0
+1: EEEE, indices_start=12884901888, outgoing_edges[s_i]=588487611, size=18446744024523894508
+0: EEEE
+0: FFFF: tid=13
+0: EEEE
+1: FFFF: tid=13, err=0
+1: EEEE, indices_start=12884901888, outgoing_edges[s_i]=588487611, size=18446744024523894508
+0: FFFF: tid=14
+0: EEEE
+1: FFFF: tid=14, err=0
+0: FFFF: tid=15
+1: EEEE, indices_start=12884901888, outgoing_edges[s_i]=588487611, size=18446744024523894508
+0: EEEE
+1: FFFF: tid=15, err=0
+1: EEEE, indices_start=15032385536, outgoing_edges[s_i]=588487611, size=18446744015933959916
+0: FFFF: tid=0
+1: FFFF: tid=0, err=0
+1: EEEE, indices_start=15032385536, outgoing_edges[s_i]=588487611, size=18446744015933959916
+0: EEEE
+0: FFFF: tid=1
+0: EEEE
+1: FFFF: tid=1, err=0
+1: EEEE, indices_start=15032385536, outgoing_edges[s_i]=588487611, size=18446744015933959916
+0: FFFF: tid=2
+1: FFFF: tid=2, err=0
+1: EEEE, indices_start=15032385536, outgoing_edges[s_i]=588487611, size=18446744015933959916
+0: EEEE
+1: FFFF: tid=3, err=0
+0: FFFF: tid=3
+0: EEEE
+1: EEEE, indices_start=15032385536, outgoing_edges[s_i]=588487611, size=18446744015933959916
+1: FFFF: tid=4, err=0
+1: EEEE, indices_start=15032385536, outgoing_edges[s_i]=588487611, size=18446744015933959916
+0: FFFF: tid=4
+0: EEEE
+0: FFFF: tid=5
+1: FFFF: tid=5, err=0
+1: EEEE, indices_start=15032385536, outgoing_edges[s_i]=588487611, size=18446744015933959916
+0: EEEE
+1: FFFF: tid=6, err=0
+1: EEEE, indices_start=15032385536, outgoing_edges[s_i]=588487611, size=18446744015933959916
+0: FFFF: tid=6
+0: EEEE
+1: FFFF: tid=7, err=0
+1: EEEE, indices_start=15032385536, outgoing_edges[s_i]=588487611, size=18446744015933959916
+0: FFFF: tid=7
+0: EEEE
+0: FFFF: tid=8
+0: EEEE
+1: FFFF: tid=8, err=0
+0: FFFF: tid=9
+1: EEEE, indices_start=15032385536, outgoing_edges[s_i]=588487611, size=18446744015933959916
+0: EEEE
+1: FFFF: tid=9, err=0
+1: EEEE, indices_start=15032385536, outgoing_edges[s_i]=588487611, size=18446744015933959916
+0: FFFF: tid=10
+0: EEEE
+1: FFFF: tid=10, err=0
+1: EEEE, indices_start=15032385536, outgoing_edges[s_i]=588487611, size=18446744015933959916
+0: FFFF: tid=11
+0: EEEE
+1: FFFF: tid=11, err=0
+1: EEEE, indices_start=15032385536, outgoing_edges[s_i]=588487611, size=18446744015933959916
+0: FFFF: tid=12
+0: EEEE
+1: FFFF: tid=12, err=0
+1: EEEE, indices_start=15032385536, outgoing_edges[s_i]=588487611, size=18446744015933959916
+0: FFFF: tid=13
+0: EEEE
+1: FFFF: tid=13, err=0
+1: EEEE, indices_start=15032385536, outgoing_edges[s_i]=588487611, size=18446744015933959916
+0: FFFF: tid=14
+0: EEEE
+1: FFFF: tid=14, err=0
+1: EEEE, indices_start=15032385536, outgoing_edges[s_i]=588487611, size=18446744015933959916
+0: FFFF: tid=15
+0: EEEE
+1: FFFF: tid=15, err=0
+1: EEEE, indices_start=17179869184, outgoing_edges[s_i]=588487611, size=18446744007344025324
+0: FFFF: tid=0
+0: EEEE
+1: FFFF: tid=0, err=0
+1: EEEE, indices_start=17179869184, outgoing_edges[s_i]=588487611, size=18446744007344025324
+0: FFFF: tid=1
+0: EEEE
+1: FFFF: tid=1, err=0
+1: EEEE, indices_start=17179869184, outgoing_edges[s_i]=588487611, size=18446744007344025324
+0: FFFF: tid=2
+1: FFFF: tid=2, err=0
+0: EEEE
+1: EEEE, indices_start=17179869184, outgoing_edges[s_i]=588487611, size=18446744007344025324
+1: FFFF: tid=3, err=0
+1: EEEE, indices_start=17179869184, outgoing_edges[s_i]=588487611, size=18446744007344025324
+0: FFFF: tid=3
+0: EEEE
+1: FFFF: tid=4, err=0
+1: EEEE, indices_start=17179869184, outgoing_edges[s_i]=588487611, size=18446744007344025324
+0: FFFF: tid=4
+0: EEEE
+1: FFFF: tid=5, err=0
+1: EEEE, indices_start=17179869184, outgoing_edges[s_i]=588487611, size=18446744007344025324
+0: FFFF: tid=5
+0: EEEE
+1: FFFF: tid=6, err=0
+0: FFFF: tid=6
+1: EEEE, indices_start=17179869184, outgoing_edges[s_i]=588487611, size=18446744007344025324
+0: EEEE
+0: FFFF: tid=7
+1: FFFF: tid=7, err=0
+0: EEEE
+1: EEEE, indices_start=17179869184, outgoing_edges[s_i]=588487611, size=18446744007344025324
+1: FFFF: tid=8, err=0
+0: FFFF: tid=8
+1: EEEE, indices_start=17179869184, outgoing_edges[s_i]=588487611, size=18446744007344025324
+0: EEEE
+0: FFFF: tid=9
+1: FFFF: tid=9, err=0
+0: EEEE
+1: EEEE, indices_start=17179869184, outgoing_edges[s_i]=588487611, size=18446744007344025324
+0: FFFF: tid=10
+0: EEEE
+1: FFFF: tid=10, err=0
+1: EEEE, indices_start=17179869184, outgoing_edges[s_i]=588487611, size=18446744007344025324
+0: FFFF: tid=11
+0: EEEE
+1: FFFF: tid=11, err=0
+1: EEEE, indices_start=17179869184, outgoing_edges[s_i]=588487611, size=18446744007344025324
+0: FFFF: tid=12
+0: EEEE
+1: FFFF: tid=12, err=0
+1: EEEE, indices_start=17179869184, outgoing_edges[s_i]=588487611, size=18446744007344025324
+1: FFFF: tid=13, err=0
+1: EEEE, indices_start=17179869184, outgoing_edges[s_i]=588487611, size=18446744007344025324
+0: FFFF: tid=13
+1: FFFF: tid=14, err=0
+0: EEEE
+1: EEEE, indices_start=17179869184, outgoing_edges[s_i]=588487611, size=18446744007344025324
+0: FFFF: tid=14
+0: EEEE
+0: FFFF: tid=15
+0: EEEE
+1: FFFF: tid=15, err=0
+1: EEEE, indices_start=19327352832, outgoing_edges[s_i]=588487611, size=18446743998754090732
+0: FFFF: tid=0
+0: EEEE
+1: FFFF: tid=0, err=0
+1: EEEE, indices_start=19327352832, outgoing_edges[s_i]=588487611, size=18446743998754090732
+0: FFFF: tid=1
+0: EEEE
+1: FFFF: tid=1, err=0
+1: EEEE, indices_start=19327352832, outgoing_edges[s_i]=588487611, size=18446743998754090732
+1: FFFF: tid=2, err=0
+0: FFFF: tid=2
+0: EEEE
+1: EEEE, indices_start=19327352832, outgoing_edges[s_i]=588487611, size=18446743998754090732
+1: FFFF: tid=3, err=0
+1: EEEE, indices_start=19327352832, outgoing_edges[s_i]=588487611, size=18446743998754090732
+0: FFFF: tid=3
+0: EEEE
+0: FFFF: tid=4
+1: FFFF: tid=4, err=0
+0: EEEE
+1: EEEE, indices_start=19327352832, outgoing_edges[s_i]=588487611, size=18446743998754090732
+1: FFFF: tid=5, err=0
+0: FFFF: tid=5
+1: EEEE, indices_start=19327352832, outgoing_edges[s_i]=588487611, size=18446743998754090732
+0: EEEE
+0: FFFF: tid=6
+1: FFFF: tid=6, err=0
+0: EEEE
+1: EEEE, indices_start=19327352832, outgoing_edges[s_i]=588487611, size=18446743998754090732
+1: FFFF: tid=7, err=0
+0: FFFF: tid=7
+1: EEEE, indices_start=19327352832, outgoing_edges[s_i]=588487611, size=18446743998754090732
+0: EEEE
+0: FFFF: tid=8
+1: FFFF: tid=8, err=0
+0: EEEE
+1: EEEE, indices_start=19327352832, outgoing_edges[s_i]=588487611, size=18446743998754090732
+0: FFFF: tid=9
+1: FFFF: tid=9, err=0
+0: EEEE
+1: EEEE, indices_start=19327352832, outgoing_edges[s_i]=588487611, size=18446743998754090732
+0: FFFF: tid=10
+1: FFFF: tid=10, err=0
+0: EEEE
+1: EEEE, indices_start=19327352832, outgoing_edges[s_i]=588487611, size=18446743998754090732
+0: FFFF: tid=11
+1: FFFF: tid=11, err=0
+1: EEEE, indices_start=19327352832, outgoing_edges[s_i]=588487611, size=18446743998754090732
+1: FFFF: tid=12, err=0
+0: EEEE
+1: EEEE, indices_start=19327352832, outgoing_edges[s_i]=588487611, size=18446743998754090732
+0: FFFF: tid=12
+1: FFFF: tid=13, err=0
+0: EEEE
+1: EEEE, indices_start=19327352832, outgoing_edges[s_i]=588487611, size=18446743998754090732
+1: FFFF: tid=14, err=0
+0: FFFF: tid=13
+0: EEEE
+0: FFFF: tid=14
+0: EEEE
+1: EEEE, indices_start=19327352832, outgoing_edges[s_i]=588487611, size=18446743998754090732
+0: FFFF: tid=15
+1: FFFF: tid=15, err=0
+0: AAAAA
+1: AAAAA
+
+===================================================================================
+=   BAD TERMINATION OF ONE OF YOUR APPLICATION PROCESSES
+=   PID 4533 RUNNING AT e14-46
+=   EXIT CODE: 9
+=   CLEANING UP REMAINING PROCESSES
+=   YOU CAN IGNORE THE BELOW CLEANUP MESSAGES
+===================================================================================
+[proxy:0:1@e14-47.hpc.usc.edu] HYD_pmcd_pmip_control_cmd_cb (pm/pmiserv/pmip_cb.c:878): assert (!closed) failed
+[proxy:0:1@e14-47.hpc.usc.edu] HYDT_dmxu_poll_wait_for_event (tools/demux/demux_poll.c:77): callback returned error status
+[proxy:0:1@e14-47.hpc.usc.edu] main (pm/pmiserv/pmip.c:200): demux engine error waiting for event
+[mpiexec@discovery2.hpc.usc.edu] HYDT_bscu_wait_for_completion (tools/bootstrap/utils/bscu_wait.c:75): one of the processes terminated badly; aborting
+[mpiexec@discovery2.hpc.usc.edu] HYDT_bsci_wait_for_completion (tools/bootstrap/src/bsci_wait.c:22): launcher returned error waiting for completion
+[mpiexec@discovery2.hpc.usc.edu] HYD_pmci_wait_for_completion (pm/pmiserv/pmiserv_pmci.c:215): launcher returned error waiting for completion
+[mpiexec@discovery2.hpc.usc.edu] main (ui/mpich/mpiexec.c:336): process manager error waiting for completion

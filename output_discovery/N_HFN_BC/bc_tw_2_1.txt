@@ -1,0 +1,1 @@
+Running app=bc graph=tw n=2 m=1

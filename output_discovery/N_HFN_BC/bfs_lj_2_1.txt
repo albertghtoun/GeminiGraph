@@ -1,0 +1,3 @@
+Running app=bfs graph=lj n=2 m=1
+[proxy:0:1@e07-08.hpc.usc.edu] HYDU_create_process (utils/launch/launch.c:74): execvp error on file ./toolkits/bfs (No such file or directory)
+[proxy:0:0@e07-07.hpc.usc.edu] HYDU_create_process (utils/launch/launch.c:74): execvp error on file ./toolkits/bfs (No such file or directory)

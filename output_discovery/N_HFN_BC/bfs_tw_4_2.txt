@@ -1,0 +1,5 @@
+Running app=bfs graph=tw n=4 m=2
+Warning: Permanently added 'e07-09,10.125.16.74' (ECDSA) to the list of known hosts.
+[proxy:0:1@e07-08.hpc.usc.edu] HYDU_create_process (utils/launch/launch.c:74): execvp error on file ./toolkits/bfs (No such file or directory)
+[proxy:0:0@e07-07.hpc.usc.edu] HYDU_create_process (utils/launch/launch.c:74): execvp error on file ./toolkits/bfs (No such file or directory)
+[proxy:0:3@e16-24.hpc.usc.edu] HYDU_create_process (utils/launch/launch.c:74): execvp error on file ./toolkits/bfs (No such file or directory)

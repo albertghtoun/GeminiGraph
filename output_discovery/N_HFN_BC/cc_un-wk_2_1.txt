@@ -1,0 +1,600 @@
+Running app=cc graph=un-wk n=2 m=1
+thread support level provided by MPI: MPI_THREAD_MULTIPLE
+load directed graph...|V| = 4206785, |E| = 202711706
+|V'_0| = 2035712 |E^dense_0| = 100492939
+|V'_1| = 2171073 |E^dense_1| = 102218767
+|V'_1_0| = 2171073 |E^dense_1_0| = 102218767
+|V'_0_0| = 2035712 |E^dense_0_0| = 100492939
+machine(0) got 100492939 sparse mode edges
+machine(1) got 102218767 sparse mode edges
+part(0) E_0 has 100492939 sparse mode edges
+part(1) E_0 has 102218767 sparse mode edges
+machine(1) got 102218767 dense mode edges
+machine(0) got 100492939 dense mode edges
+part(0) E_0 has 100492939 dense mode edges
+part(1) E_0 has 102218767 dense mode edges
+preprocessing cost: 59.31 (s)
+0: reducer = 2035712
+0: reducer = 4206785
+process_vertices took 0.307455 (s)
+active(0)>=4206785
+0: reducer = 100492939
+0: reducer = 202711706
+process_vertices took 0.119737 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2035712 vertices.
+partition 0 offset: 0
+partition 1 offset: 2035712
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2035712
+0 send_buffer delegated_start_2 = 4206785
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2035712
+0 done local sparse slot at step 0. reducer2 = 3268918
+0 local sparse slot buffer_size = 2171073
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 2171073
+0 done delegated sparse slot at step 0. reducer2 = 2743977
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2035712
+0 done delegated sparse slot at step 1. reducer2 = 3022426
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 78.169311 (s)
+active(1)>=9035321
+0: reducer = 99448356
+0: reducer = 201355633
+process_vertices took 0.216167 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 1926447 vertices.
+partition 0 offset: 0
+partition 1 offset: 2035712
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 1926447
+0 send_buffer delegated_start_2 = 4047729
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 1926447
+0 done local sparse slot at step 0. reducer2 = 5780564
+0 local sparse slot buffer_size = 2121282
+0 done local sparse slot at step 1. reducer2 = 1304446
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 2121282
+0 done delegated sparse slot at step 0. reducer2 = 5413629
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 1926447
+0 done delegated sparse slot at step 1. reducer2 = 875949
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 75.214367 (s)
+active(2)>=13374588
+0: reducer = 100449471
+0: reducer = 202645781
+process_vertices took 0.247609 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2032218 vertices.
+partition 0 offset: 0
+partition 1 offset: 2035712
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2032218
+0 send_buffer delegated_start_2 = 4198707
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2032218
+0 done local sparse slot at step 0. reducer2 = 4331912
+0 local sparse slot buffer_size = 2166489
+0 done local sparse slot at step 1. reducer2 = 903796
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 2166489
+0 done delegated sparse slot at step 0. reducer2 = 4350520
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2032218
+0 done delegated sparse slot at step 1. reducer2 = 587138
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 78.002702 (s)
+active(3)>=10173366
+0: reducer = 100485231
+0: reducer = 202597299
+process_vertices took 0.206573 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2034909 vertices.
+partition 0 offset: 0
+partition 1 offset: 2035712
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2034909
+0 send_buffer delegated_start_2 = 4201955
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2034909
+0 done local sparse slot at step 0. reducer2 = 2318075
+0 local sparse slot buffer_size = 2167046
+0 done local sparse slot at step 1. reducer2 = 381183
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 2167046
+Connection to e13-43 closed by remote host.
+Connection to e13-44 closed by remote host.
+0 done delegated sparse slot at step 0. reducer2 = 2471852
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2034909
+0 done delegated sparse slot at step 1. reducer2 = 276205
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 77.892730 (s)
+active(4)>=5447315
+0: reducer = 99977191
+0: reducer = 201192470
+process_vertices took 0.184551 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2034485 vertices.
+partition 0 offset: 0
+partition 1 offset: 2035712
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2034485
+0 send_buffer delegated_start_2 = 4200489
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2034485
+0 done local sparse slot at step 0. reducer2 = 1738313
+0 local sparse slot buffer_size = 2166004
+0 done local sparse slot at step 1. reducer2 = 129613
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 2166004
+0 done delegated sparse slot at step 0. reducer2 = 1781342
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2034485
+0 done delegated sparse slot at step 1. reducer2 = 102273
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 77.717478 (s)
+active(5)>=3751541
+0: reducer = 56745856
+0: reducer = 110560060
+process_vertices took 0.182782 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 1637148 vertices.
+partition 0 offset: 0
+partition 1 offset: 2035712
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 1637148
+0 send_buffer delegated_start_2 = 3322771
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 1637148
+0 done local sparse slot at step 0. reducer2 = 64576
+0 local sparse slot buffer_size = 1685623
+0 done local sparse slot at step 1. reducer2 = 1634
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 1685623
+0 done delegated sparse slot at step 0. reducer2 = 54321
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 1637148
+0 done delegated sparse slot at step 1. reducer2 = 3343
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 60.279267 (s)
+active(6)>=123874
+0: reducer = 384300
+0: reducer = 683541
+process_vertices took 0.267210 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 65564 vertices.
+partition 0 offset: 0
+partition 1 offset: 2035712
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 65564
+0 send_buffer delegated_start_2 = 122727
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 65564
+0 done local sparse slot at step 0. reducer2 = 189
+0 local sparse slot buffer_size = 57163
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 57163
+0 done delegated sparse slot at step 0. reducer2 = 114
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 65564
+active(7)>=303
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 1.903708 (s)
+0: reducer = 428
+0: reducer = 620
+process_vertices took 0.209216 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 189 vertices.
+partition 0 offset: 0
+partition 1 offset: 2035712
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 189
+0 send_buffer delegated_start_2 = 302
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 189
+0 done local sparse slot at step 0. reducer2 = 2
+0 local sparse slot buffer_size = 113
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 113
+0 done delegated sparse slot at step 0. reducer2 = 1
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 189
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.226184 (s)
+active(8)>=3
+0: reducer = 5
+0: reducer = 6
+process_vertices took 0.260781 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2 vertices.
+partition 0 offset: 0
+partition 1 offset: 2035712
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2
+0 send_buffer delegated_start_2 = 3
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 0. reducer2 = 0
+0 local sparse slot buffer_size = 1
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 1
+0 done delegated sparse slot at step 0. reducer2 = 0
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.275275 (s)
+exec_time=449.991533(s)
+components = 3477
+0: outgoing bitmap_cache_hit = 24301468
+0: outgoing bitmap_cache_miss = 0
+0: incoming bitmap_cache_hit = 0
+0: incoming bitmap_cache_miss = 0
+0: reducer = 2035712
+0: reducer = 4206785
+process_vertices took 0.290088 (s)
+active(0)>=4206785
+0: reducer = 100492939
+0: reducer = 202711706
+process_vertices took 0.129730 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2035712 vertices.
+partition 0 offset: 0
+partition 1 offset: 2035712
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2035712
+0 send_buffer delegated_start_2 = 4206785
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2035712
+0 done local sparse slot at step 0. reducer2 = 3208422
+0 local sparse slot buffer_size = 2171073
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 2171073
+0 done delegated sparse slot at step 0. reducer2 = 2736435
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2035712
+0 done delegated sparse slot at step 1. reducer2 = 3036932
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 77.907709 (s)
+active(1)>=8981789
+0: reducer = 99448356
+0: reducer = 201355633
+process_vertices took 0.209713 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 1926447 vertices.
+partition 0 offset: 0
+partition 1 offset: 2035712
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 1926447
+0 send_buffer delegated_start_2 = 4047729
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 1926447
+0 done local sparse slot at step 0. reducer2 = 5821459
+0 local sparse slot buffer_size = 2121282
+0 done local sparse slot at step 1. reducer2 = 1274023
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 2121282
+0 done delegated sparse slot at step 0. reducer2 = 5342271
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 1926447
+active(2)>=13315525
+0 done delegated sparse slot at step 1. reducer2 = 877772
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 75.480308 (s)
+0: reducer = 100449471
+0: reducer = 202645781
+process_vertices took 0.196129 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2032218 vertices.
+partition 0 offset: 0
+partition 1 offset: 2035712
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2032218
+0 send_buffer delegated_start_2 = 4198707
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2032218
+0 done local sparse slot at step 0. reducer2 = 4320273
+0 local sparse slot buffer_size = 2166489
+0 done local sparse slot at step 1. reducer2 = 906936
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 2166489
+0 done delegated sparse slot at step 0. reducer2 = 4381434
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2032218
+active(3)>=10195217
+0 done delegated sparse slot at step 1. reducer2 = 586574
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 77.892802 (s)
+0: reducer = 100485231
+0: reducer = 202597299
+process_vertices took 0.284985 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2034909 vertices.
+partition 0 offset: 0
+partition 1 offset: 2035712
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2034909
+0 send_buffer delegated_start_2 = 4201955
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2034909
+0 done local sparse slot at step 0. reducer2 = 2311119
+0 local sparse slot buffer_size = 2167046
+0 done local sparse slot at step 1. reducer2 = 382051
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 2167046
+0 done delegated sparse slot at step 0. reducer2 = 2453126
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2034909
+0 done delegated sparse slot at step 1. reducer2 = 276242
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 77.882270 (s)
+active(4)>=5422538
+0: reducer = 99977191
+0: reducer = 201192470
+process_vertices took 0.192413 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2034485 vertices.
+partition 0 offset: 0
+partition 1 offset: 2035712
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2034485
+0 send_buffer delegated_start_2 = 4200489
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2034485
+0 done local sparse slot at step 0. reducer2 = 1738745
+0 local sparse slot buffer_size = 2166004
+0 done local sparse slot at step 1. reducer2 = 132478
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 2166004
+0 done delegated sparse slot at step 0. reducer2 = 1782936
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2034485
+0 done delegated sparse slot at step 1. reducer2 = 102354
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 79.034356 (s)
+active(5)>=3756513
+0: reducer = 56745856
+0: reducer = 110560060
+process_vertices took 0.153819 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 1637148 vertices.
+partition 0 offset: 0
+partition 1 offset: 2035712
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 1637148
+0 send_buffer delegated_start_2 = 3322771
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 1637148
+0 done local sparse slot at step 0. reducer2 = 64572
+0 local sparse slot buffer_size = 1685623
+0 done local sparse slot at step 1. reducer2 = 1634
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 1685623
+0 done delegated sparse slot at step 0. reducer2 = 54314
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 1637148
+0 done delegated sparse slot at step 1. reducer2 = 3343
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 60.212043 (s)
+active(6)>=123863
+0: reducer = 384300
+0: reducer = 683541
+process_vertices took 0.214479 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 65564 vertices.
+partition 0 offset: 0
+partition 1 offset: 2035712
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 65564
+0 send_buffer delegated_start_2 = 122727
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 65564
+0 done local sparse slot at step 0. reducer2 = 189
+0 local sparse slot buffer_size = 57163
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 57163
+0 done delegated sparse slot at step 0. reducer2 = 114
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 65564
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 1.838945 (s)
+active(7)>=303
+0: reducer = 428
+0: reducer = 620
+process_vertices took 0.216258 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 189 vertices.
+partition 0 offset: 0
+partition 1 offset: 2035712
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 189
+0 send_buffer delegated_start_2 = 302
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 189
+0 done local sparse slot at step 0. reducer2 = 2
+0 local sparse slot buffer_size = 113
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 113
+0 done delegated sparse slot at step 0. reducer2 = 1
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 189
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.240214 (s)
+active(8)>=3
+0: reducer = 5
+0: reducer = 6
+process_vertices took 0.284769 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2 vertices.
+partition 0 offset: 0
+partition 1 offset: 2035712
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2
+0 send_buffer delegated_start_2 = 3
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 0. reducer2 = 0
+0 local sparse slot buffer_size = 1
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 1
+0 done delegated sparse slot at step 0. reducer2 = 0
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.297318 (s)
+exec_time=451.079235(s)
+components = 3477
+0: outgoing bitmap_cache_hit = 24301468
+0: outgoing bitmap_cache_miss = 0
+0: incoming bitmap_cache_hit = 0
+0: incoming bitmap_cache_miss = 0
+[1630109355.452485] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c682c0 was not returned to mpool ucp_rkeys
+[1630109355.452568] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c68380 was not returned to mpool ucp_rkeys
+[1630109355.452580] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c68440 was not returned to mpool ucp_rkeys
+[1630109355.452589] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c68500 was not returned to mpool ucp_rkeys
+[1630109355.452598] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c685c0 was not returned to mpool ucp_rkeys
+[1630109355.452607] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c68680 was not returned to mpool ucp_rkeys
+[1630109355.452617] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c68740 was not returned to mpool ucp_rkeys
+[1630109355.452626] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c68800 was not returned to mpool ucp_rkeys
+[1630109355.452635] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c688c0 was not returned to mpool ucp_rkeys
+[1630109355.452658] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c68980 was not returned to mpool ucp_rkeys
+[1630109355.452672] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c68a40 was not returned to mpool ucp_rkeys
+[1630109355.452682] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c68b00 was not returned to mpool ucp_rkeys
+[1630109355.452691] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c68bc0 was not returned to mpool ucp_rkeys
+[1630109355.452701] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c68c80 was not returned to mpool ucp_rkeys
+[1630109355.452722] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c68d40 was not returned to mpool ucp_rkeys
+[1630109355.452732] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c68e00 was not returned to mpool ucp_rkeys
+[1630109355.452741] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c68ec0 was not returned to mpool ucp_rkeys
+[1630109355.452750] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c68f80 was not returned to mpool ucp_rkeys
+[1630109355.452773] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c69040 was not returned to mpool ucp_rkeys
+[1630109355.452788] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c69100 was not returned to mpool ucp_rkeys
+[1630109355.452800] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c691c0 was not returned to mpool ucp_rkeys
+[1630109355.452811] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c69280 was not returned to mpool ucp_rkeys
+[1630109355.452821] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c69340 was not returned to mpool ucp_rkeys
+[1630109355.452830] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c69400 was not returned to mpool ucp_rkeys
+[1630109355.452840] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c694c0 was not returned to mpool ucp_rkeys
+[1630109355.452861] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c69580 was not returned to mpool ucp_rkeys
+[1630109355.452870] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c69640 was not returned to mpool ucp_rkeys
+[1630109355.452879] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c69700 was not returned to mpool ucp_rkeys
+[1630109355.452901] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c697c0 was not returned to mpool ucp_rkeys
+[1630109355.452914] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c69880 was not returned to mpool ucp_rkeys
+[1630109355.452925] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c69940 was not returned to mpool ucp_rkeys
+[1630109355.452935] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c69a00 was not returned to mpool ucp_rkeys
+[1630109355.452944] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c69ac0 was not returned to mpool ucp_rkeys
+[1630109355.452966] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c69b80 was not returned to mpool ucp_rkeys
+[1630109355.452975] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c69c40 was not returned to mpool ucp_rkeys
+[1630109355.452984] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c69d00 was not returned to mpool ucp_rkeys
+[1630109355.452993] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c69dc0 was not returned to mpool ucp_rkeys
+[1630109355.453015] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c69e80 was not returned to mpool ucp_rkeys
+[1630109355.453025] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c69f40 was not returned to mpool ucp_rkeys
+[1630109355.453035] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6a000 was not returned to mpool ucp_rkeys
+[1630109355.453045] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6a0c0 was not returned to mpool ucp_rkeys
+[1630109355.453055] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6a180 was not returned to mpool ucp_rkeys
+[1630109355.453077] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6a240 was not returned to mpool ucp_rkeys
+[1630109355.453086] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6a300 was not returned to mpool ucp_rkeys
+[1630109355.453095] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6a3c0 was not returned to mpool ucp_rkeys
+[1630109355.453117] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6a480 was not returned to mpool ucp_rkeys
+[1630109355.453157] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6a540 was not returned to mpool ucp_rkeys
+[1630109355.453180] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6a600 was not returned to mpool ucp_rkeys
+[1630109355.453190] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6a6c0 was not returned to mpool ucp_rkeys
+[1630109355.453211] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6a780 was not returned to mpool ucp_rkeys
+[1630109355.453234] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6a840 was not returned to mpool ucp_rkeys
+[1630109355.453249] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6a900 was not returned to mpool ucp_rkeys
+[1630109355.453258] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6a9c0 was not returned to mpool ucp_rkeys
+[1630109355.453268] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6aa80 was not returned to mpool ucp_rkeys
+[1630109355.453277] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6ab40 was not returned to mpool ucp_rkeys
+[1630109355.453287] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6ac00 was not returned to mpool ucp_rkeys
+[1630109355.453296] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6acc0 was not returned to mpool ucp_rkeys
+[1630109355.453306] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6ad80 was not returned to mpool ucp_rkeys
+[1630109355.453315] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6ae40 was not returned to mpool ucp_rkeys
+[1630109355.453325] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6af00 was not returned to mpool ucp_rkeys
+[1630109355.453335] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6afc0 was not returned to mpool ucp_rkeys
+[1630109355.453345] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6b080 was not returned to mpool ucp_rkeys
+[1630109355.453354] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6b140 was not returned to mpool ucp_rkeys
+[1630109355.453364] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6b200 was not returned to mpool ucp_rkeys
+[1630109355.453373] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6b2c0 was not returned to mpool ucp_rkeys
+[1630109355.453383] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6b380 was not returned to mpool ucp_rkeys
+[1630109355.453392] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6b440 was not returned to mpool ucp_rkeys
+[1630109355.453402] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6b500 was not returned to mpool ucp_rkeys
+[1630109355.453411] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6b5c0 was not returned to mpool ucp_rkeys
+[1630109355.453422] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6b680 was not returned to mpool ucp_rkeys
+[1630109355.453431] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6b740 was not returned to mpool ucp_rkeys
+[1630109355.453441] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6b800 was not returned to mpool ucp_rkeys
+[1630109355.453450] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6b8c0 was not returned to mpool ucp_rkeys
+[1630109355.453460] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6b980 was not returned to mpool ucp_rkeys
+[1630109355.453469] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6ba40 was not returned to mpool ucp_rkeys
+[1630109355.453482] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6bb00 was not returned to mpool ucp_rkeys
+[1630109355.453492] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6bbc0 was not returned to mpool ucp_rkeys
+[1630109355.453501] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6bc80 was not returned to mpool ucp_rkeys
+[1630109355.453511] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6bd40 was not returned to mpool ucp_rkeys
+[1630109355.453520] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6be00 was not returned to mpool ucp_rkeys
+[1630109355.453530] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6bec0 was not returned to mpool ucp_rkeys
+[1630109355.453539] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6bf80 was not returned to mpool ucp_rkeys
+[1630109355.453549] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6c040 was not returned to mpool ucp_rkeys
+[1630109355.453558] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6c100 was not returned to mpool ucp_rkeys
+[1630109355.453571] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6c1c0 was not returned to mpool ucp_rkeys
+[1630109355.453580] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6c280 was not returned to mpool ucp_rkeys
+[1630109355.453590] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6c340 was not returned to mpool ucp_rkeys
+[1630109355.453599] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6c400 was not returned to mpool ucp_rkeys
+[1630109355.453608] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6c4c0 was not returned to mpool ucp_rkeys
+[1630109355.453618] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6c580 was not returned to mpool ucp_rkeys
+[1630109355.453628] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6c640 was not returned to mpool ucp_rkeys
+[1630109355.453637] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6c700 was not returned to mpool ucp_rkeys
+[1630109355.453647] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6c7c0 was not returned to mpool ucp_rkeys
+[1630109355.453657] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6c880 was not returned to mpool ucp_rkeys
+[1630109355.453667] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6c940 was not returned to mpool ucp_rkeys
+[1630109355.453676] [e13-43:3086 :0]          mpool.c:43   UCX  WARN  object 0x1c6ca00 was not returned to mpool ucp_rkeys

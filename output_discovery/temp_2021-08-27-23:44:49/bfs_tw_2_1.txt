@@ -1,0 +1,7 @@
+Running app=bfs graph=tw n=2 m=1
+Warning: Permanently added 'e14-46,10.125.17.55' (ECDSA) to the list of known hosts.
+Warning: Permanently added 'e14-47,10.125.17.44' (ECDSA) to the list of known hosts.
+[proxy:0:1@e14-47.hpc.usc.edu] HYDU_sock_connect (utils/sock/sock.c:113): unable to get host address for discovery1.usc.edu
+[proxy:0:1@e14-47.hpc.usc.edu] main (pm/pmiserv/pmip.c:183): unable to connect to server discovery1.usc.edu at port 30848 (check for firewalls!)
+[proxy:0:0@e14-46.hpc.usc.edu] HYDU_sock_connect (utils/sock/sock.c:113): unable to get host address for discovery1.usc.edu
+[proxy:0:0@e14-46.hpc.usc.edu] main (pm/pmiserv/pmip.c:183): unable to connect to server discovery1.usc.edu at port 30848 (check for firewalls!)

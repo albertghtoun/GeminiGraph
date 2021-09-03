@@ -1,0 +1,196 @@
+Running app=pagerank graph=wk n=2 m=1
+thread support level provided by MPI: MPI_THREAD_MULTIPLE
+load directed graph...|V| = 4206785, |E| = 101355853
+|V'_0| = 2039808 |E^dense_0| = 50736685
+|V'_1_0| = 2166977 |E^dense_1_0| = 50619168
+|V'_1| = 2166977 |E^dense_1| = 50619168
+|V'_0_0| = 2039808 |E^dense_0_0| = 50736685
+machine(1) got 50164638 sparse mode edges
+machine(0) got 51191215 sparse mode edges
+part(0) E_0 has 51191215 sparse mode edges
+part(1) E_0 has 50164638 sparse mode edges
+machine(1) got 50619168 dense mode edges
+machine(0) got 50736685 dense mode edges
+part(0) E_0 has 50736685 dense mode edges
+part(1) E_0 has 50619168 dense mode edges
+preprocessing cost: 20.42 (s)
+0: reducer = -1219049021
+0: reducer = -1219049021
+process_vertices took 0.292210 (s)
+delta(0)=1.000000
+0: reducer = 50736685
+0: reducer = 101355853
+process_vertices took 0.136108 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2039808 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2039808
+0 send_buffer delegated_start_2 = 4206785
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2039808
+0 done local sparse slot at step 0. reducer2 = 0
+0 local sparse slot buffer_size = 2166977
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 2166977
+0 done delegated sparse slot at step 0. reducer2 = 0
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2039808
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 76.023863 (s)
+0: reducer = -1219049021
+0: reducer = -1219049021
+process_vertices took 0.225308 (s)
+exec_time=76.557723(s)
+0: reducer = -1219049021
+0: reducer = -1219049021
+process_vertices took 0.132882 (s)
+pr_sum=4200089.549999
+pr[2038044]=21562.818575
+0: outgoing bitmap_cache_hit = 4206785
+0: outgoing bitmap_cache_miss = 0
+0: incoming bitmap_cache_hit = 0
+0: incoming bitmap_cache_miss = 0
+0: reducer = -1219049021
+0: reducer = -1219049021
+process_vertices took 0.275251 (s)
+delta(0)=1.000000
+0: reducer = 50736685
+0: reducer = 101355853
+process_vertices took 0.131367 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2039808 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2039808
+0 send_buffer delegated_start_2 = 4206785
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2039808
+0 done local sparse slot at step 0. reducer2 = 0
+0 local sparse slot buffer_size = 2166977
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 2166977
+0 done delegated sparse slot at step 0. reducer2 = 0
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2039808
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 76.074576 (s)
+0: reducer = -1219049021
+0: reducer = -1219048865
+process_vertices took 0.199795 (s)
+exec_time=76.565628(s)
+0: reducer = -1219049021
+0: reducer = -1219049021
+process_vertices took 0.142952 (s)
+pr_sum=4200089.549999
+pr[2038044]=21562.818575
+0: outgoing bitmap_cache_hit = 4206785
+0: outgoing bitmap_cache_miss = 0
+0: incoming bitmap_cache_hit = 0
+0: incoming bitmap_cache_miss = 0
+[1630110350.895289] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8ef1c0 was not returned to mpool ucp_rkeys
+[1630110350.895361] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8ef280 was not returned to mpool ucp_rkeys
+[1630110350.895373] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8ef340 was not returned to mpool ucp_rkeys
+[1630110350.895383] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8ef400 was not returned to mpool ucp_rkeys
+[1630110350.895392] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8ef4c0 was not returned to mpool ucp_rkeys
+[1630110350.895402] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8ef580 was not returned to mpool ucp_rkeys
+[1630110350.895411] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8ef640 was not returned to mpool ucp_rkeys
+[1630110350.895420] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8ef700 was not returned to mpool ucp_rkeys
+[1630110350.895429] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8ef7c0 was not returned to mpool ucp_rkeys
+[1630110350.895452] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8ef880 was not returned to mpool ucp_rkeys
+[1630110350.895471] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8ef940 was not returned to mpool ucp_rkeys
+[1630110350.895481] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8efa00 was not returned to mpool ucp_rkeys
+[1630110350.895491] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8efac0 was not returned to mpool ucp_rkeys
+[1630110350.895501] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8efb80 was not returned to mpool ucp_rkeys
+[1630110350.895523] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8efc40 was not returned to mpool ucp_rkeys
+[1630110350.895532] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8efd00 was not returned to mpool ucp_rkeys
+[1630110350.895542] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8efdc0 was not returned to mpool ucp_rkeys
+[1630110350.895564] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8efe80 was not returned to mpool ucp_rkeys
+[1630110350.895574] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8eff40 was not returned to mpool ucp_rkeys
+[1630110350.895596] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f0000 was not returned to mpool ucp_rkeys
+[1630110350.895608] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f00c0 was not returned to mpool ucp_rkeys
+[1630110350.895618] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f0180 was not returned to mpool ucp_rkeys
+[1630110350.895640] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f0240 was not returned to mpool ucp_rkeys
+[1630110350.895649] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f0300 was not returned to mpool ucp_rkeys
+[1630110350.895658] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f03c0 was not returned to mpool ucp_rkeys
+[1630110350.895668] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f0480 was not returned to mpool ucp_rkeys
+[1630110350.895690] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f0540 was not returned to mpool ucp_rkeys
+[1630110350.895702] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f0600 was not returned to mpool ucp_rkeys
+[1630110350.895712] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f06c0 was not returned to mpool ucp_rkeys
+[1630110350.895722] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f0780 was not returned to mpool ucp_rkeys
+[1630110350.895731] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f0840 was not returned to mpool ucp_rkeys
+[1630110350.895753] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f0900 was not returned to mpool ucp_rkeys
+[1630110350.895762] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f09c0 was not returned to mpool ucp_rkeys
+[1630110350.895771] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f0a80 was not returned to mpool ucp_rkeys
+[1630110350.895793] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f0b40 was not returned to mpool ucp_rkeys
+[1630110350.895809] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f0c00 was not returned to mpool ucp_rkeys
+[1630110350.895820] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f0cc0 was not returned to mpool ucp_rkeys
+[1630110350.895830] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f0d80 was not returned to mpool ucp_rkeys
+[1630110350.895852] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f0e40 was not returned to mpool ucp_rkeys
+[1630110350.895861] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f0f00 was not returned to mpool ucp_rkeys
+[1630110350.895870] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f0fc0 was not returned to mpool ucp_rkeys
+[1630110350.895879] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f1080 was not returned to mpool ucp_rkeys
+[1630110350.895889] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f1140 was not returned to mpool ucp_rkeys
+[1630110350.895911] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f1200 was not returned to mpool ucp_rkeys
+[1630110350.895921] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f12c0 was not returned to mpool ucp_rkeys
+[1630110350.895931] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f1380 was not returned to mpool ucp_rkeys
+[1630110350.895941] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f1440 was not returned to mpool ucp_rkeys
+[1630110350.895950] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f1500 was not returned to mpool ucp_rkeys
+[1630110350.895972] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f15c0 was not returned to mpool ucp_rkeys
+[1630110350.895981] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f1680 was not returned to mpool ucp_rkeys
+[1630110350.895990] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f1740 was not returned to mpool ucp_rkeys
+[1630110350.895999] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f1800 was not returned to mpool ucp_rkeys
+[1630110350.896026] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f18c0 was not returned to mpool ucp_rkeys
+[1630110350.896036] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f1980 was not returned to mpool ucp_rkeys
+[1630110350.896046] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f1a40 was not returned to mpool ucp_rkeys
+[1630110350.896069] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f1b00 was not returned to mpool ucp_rkeys
+[1630110350.896079] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f1bc0 was not returned to mpool ucp_rkeys
+[1630110350.896088] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f1c80 was not returned to mpool ucp_rkeys
+[1630110350.896097] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f1d40 was not returned to mpool ucp_rkeys
+[1630110350.896119] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f1e00 was not returned to mpool ucp_rkeys
+[1630110350.896151] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f1ec0 was not returned to mpool ucp_rkeys
+[1630110350.896162] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f1f80 was not returned to mpool ucp_rkeys
+[1630110350.896174] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f2040 was not returned to mpool ucp_rkeys
+[1630110350.896184] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f2100 was not returned to mpool ucp_rkeys
+[1630110350.896208] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f21c0 was not returned to mpool ucp_rkeys
+[1630110350.896230] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f2280 was not returned to mpool ucp_rkeys
+[1630110350.896239] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f2340 was not returned to mpool ucp_rkeys
+[1630110350.896248] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f2400 was not returned to mpool ucp_rkeys
+[1630110350.896270] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f24c0 was not returned to mpool ucp_rkeys
+[1630110350.896289] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f2580 was not returned to mpool ucp_rkeys
+[1630110350.896301] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f2640 was not returned to mpool ucp_rkeys
+[1630110350.896311] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f2700 was not returned to mpool ucp_rkeys
+[1630110350.896333] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f27c0 was not returned to mpool ucp_rkeys
+[1630110350.896343] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f2880 was not returned to mpool ucp_rkeys
+[1630110350.896352] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f2940 was not returned to mpool ucp_rkeys
+[1630110350.896361] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f2a00 was not returned to mpool ucp_rkeys
+[1630110350.896383] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f2ac0 was not returned to mpool ucp_rkeys
+[1630110350.896398] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f2b80 was not returned to mpool ucp_rkeys
+[1630110350.896408] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f2c40 was not returned to mpool ucp_rkeys
+[1630110350.896418] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f2d00 was not returned to mpool ucp_rkeys
+[1630110350.896428] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f2dc0 was not returned to mpool ucp_rkeys
+[1630110350.896450] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f2e80 was not returned to mpool ucp_rkeys
+[1630110350.896459] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f2f40 was not returned to mpool ucp_rkeys
+[1630110350.896469] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f3000 was not returned to mpool ucp_rkeys
+[1630110350.896491] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f30c0 was not returned to mpool ucp_rkeys
+[1630110350.896501] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f3180 was not returned to mpool ucp_rkeys
+[1630110350.896511] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f3240 was not returned to mpool ucp_rkeys
+[1630110350.896521] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f3300 was not returned to mpool ucp_rkeys
+[1630110350.896531] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f33c0 was not returned to mpool ucp_rkeys
+[1630110350.896541] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f3480 was not returned to mpool ucp_rkeys
+[1630110350.896562] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f3540 was not returned to mpool ucp_rkeys
+[1630110350.896572] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f3600 was not returned to mpool ucp_rkeys
+[1630110350.896581] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f36c0 was not returned to mpool ucp_rkeys
+[1630110350.896591] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f3780 was not returned to mpool ucp_rkeys
+[1630110350.896613] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f3840 was not returned to mpool ucp_rkeys
+[1630110350.896628] [e13-43:3926 :0]          mpool.c:43   UCX  WARN  object 0x8f3900 was not returned to mpool ucp_rkeys

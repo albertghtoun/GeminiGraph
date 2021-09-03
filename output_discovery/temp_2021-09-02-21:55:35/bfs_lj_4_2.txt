@@ -1,0 +1,9 @@
+Running app=bfs graph=lj n=4 m=2
+Access denied by pam_slurm_adopt: you have no active jobs on this node
+Access denied by pam_slurm_adopt: you have no active jobs on this node
+Authentication failed.
+Authentication failed.
+Access denied by pam_slurm_adopt: you have no active jobs on this node
+Authentication failed.
+Access denied by pam_slurm_adopt: you have no active jobs on this node
+Authentication failed.

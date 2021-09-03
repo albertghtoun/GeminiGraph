@@ -1,0 +1,2934 @@
+Running app=sssp graph=weighted-wk n=2 m=1
+thread support level provided by MPI: MPI_THREAD_MULTIPLE
+load directed graph...|V| = 4206785, |E| = 101355853
+|V'_0| = 2039808 |E^dense_0| = 50736685
+|V'_1_0| = 2166977 |E^dense_1_0| = 50619168
+|V'_1| = 2166977 |E^dense_1| = 50619168
+|V'_0_0| = 2039808 |E^dense_0_0| = 50736685
+machine(0) got 51191215 sparse mode edges
+machine(1) got 50164638 sparse mode edges
+part(0) E_0 has 51191215 sparse mode edges
+part(1) E_0 has 50164638 sparse mode edges
+machine(0) got 50736685 dense mode edges
+machine(1) got 50619168 dense mode edges
+part(0) E_0 has 50736685 dense mode edges
+part(1) E_0 has 50619168 dense mode edges
+preprocessing cost: 23.08 (s)
+active(0)>=1
+0: reducer = 1
+0: reducer = 1
+process_vertices took 0.277039 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 1 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 1
+0 send_buffer delegated_start_2 = 1
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 1
+0 done local sparse slot at step 0. reducer2 = 1
+0 local sparse slot buffer_size = 0
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 0
+0 done delegated sparse slot at step 0. reducer2 = 0
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 1
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.291516 (s)
+active(1)>=1
+0: reducer = 7
+0: reducer = 7
+process_vertices took 0.255311 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 1 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 1
+0 send_buffer delegated_start_2 = 1
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 1
+0 done local sparse slot at step 0. reducer2 = 2
+0 local sparse slot buffer_size = 0
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 0
+0 done delegated sparse slot at step 0. reducer2 = 0
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 1
+0 done delegated sparse slot at step 1. reducer2 = 4
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.273844 (s)
+active(2)>=6
+0: reducer = 133
+0: reducer = 503
+process_vertices took 0.281227 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2
+0 send_buffer delegated_start_2 = 6
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 0. reducer2 = 72
+0 local sparse slot buffer_size = 4
+0 done local sparse slot at step 1. reducer2 = 129
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 4
+0 done delegated sparse slot at step 0. reducer2 = 224
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 1. reducer2 = 48
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.295820 (s)
+active(3)>=473
+0: reducer = 25309
+0: reducer = 53993
+process_vertices took 0.253144 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 197 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 197
+0 send_buffer delegated_start_2 = 457
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 197
+0 done local sparse slot at step 0. reducer2 = 12094
+0 local sparse slot buffer_size = 260
+0 done local sparse slot at step 1. reducer2 = 6215
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 260
+0 done delegated sparse slot at step 0. reducer2 = 13395
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 197
+0 done delegated sparse slot at step 1. reducer2 = 6422
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.275036 (s)
+active(4)>=38126
+0: reducer = 1457540
+0: reducer = 2994533
+process_vertices took 0.181800 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 16003 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 16003
+0 send_buffer delegated_start_2 = 33429
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 16003
+0 done local sparse slot at step 0. reducer2 = 364768
+0 local sparse slot buffer_size = 17426
+0 done local sparse slot at step 1. reducer2 = 103164
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 17426
+0 done delegated sparse slot at step 0. reducer2 = 384441
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 16003
+0 done delegated sparse slot at step 1. reducer2 = 107604
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.911427 (s)
+active(5)>=959977
+0: reducer = 16845137
+0: reducer = 33553217
+process_vertices took 0.205105 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 337632 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 337632
+0 send_buffer delegated_start_2 = 697720
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 337632
+0 done local sparse slot at step 0. reducer2 = 1683856
+0 local sparse slot buffer_size = 360088
+0 done local sparse slot at step 1. reducer2 = 300845
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 360088
+0 done delegated sparse slot at step 0. reducer2 = 1724976
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 337632
+active(6)>=4043079
+0 done delegated sparse slot at step 1. reducer2 = 333402
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 13.777749 (s)
+0: reducer = 37721106
+0: reducer = 74425561
+process_vertices took 0.190068 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 1258675 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 1258675
+0 send_buffer delegated_start_2 = 2581626
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 1258675
+0 done local sparse slot at step 0. reducer2 = 1611861
+0 local sparse slot buffer_size = 1322951
+0 done local sparse slot at step 1. reducer2 = 277295
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 1322951
+0 done delegated sparse slot at step 0. reducer2 = 1691057
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 1258675
+0 done delegated sparse slot at step 1. reducer2 = 312458
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 46.969412 (s)
+active(7)>=3892671
+0: reducer = 34742264
+0: reducer = 68592628
+process_vertices took 0.218396 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 1416960 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 1416960
+0 send_buffer delegated_start_2 = 2919320
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 1416960
+0 done local sparse slot at step 0. reducer2 = 954950
+0 local sparse slot buffer_size = 1502360
+0 done local sparse slot at step 1. reducer2 = 170019
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 1502360
+0 done delegated sparse slot at step 0. reducer2 = 985145
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 1416960
+0 done delegated sparse slot at step 1. reducer2 = 194879
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 52.015281 (s)
+active(8)>=2304993
+0: reducer = 20845244
+0: reducer = 41278674
+process_vertices took 0.225818 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 1028107 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 1028107
+0 send_buffer delegated_start_2 = 2104701
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 1028107
+0 done local sparse slot at step 0. reducer2 = 406162
+0 local sparse slot buffer_size = 1076594
+0 done local sparse slot at step 1. reducer2 = 65471
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 1076594
+0 done delegated sparse slot at step 0. reducer2 = 418937
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 1028107
+active(9)>=962605
+0 done delegated sparse slot at step 1. reducer2 = 72035
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 37.189728 (s)
+0: reducer = 7384482
+0: reducer = 14726900
+process_vertices took 0.237718 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 460310 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 460310
+0 send_buffer delegated_start_2 = 939613
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 460310
+0 done local sparse slot at step 0. reducer2 = 113629
+0 local sparse slot buffer_size = 479303
+0 done local sparse slot at step 1. reducer2 = 15251
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 479303
+0 done delegated sparse slot at step 0. reducer2 = 111057
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 460310
+0 done delegated sparse slot at step 1. reducer2 = 15356
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 16.610667 (s)
+active(10)>=255293
+0: reducer = 1709955
+0: reducer = 3430779
+process_vertices took 0.181806 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 128062 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 128062
+0 send_buffer delegated_start_2 = 253700
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 128062
+0 done local sparse slot at step 0. reducer2 = 26964
+0 local sparse slot buffer_size = 125638
+0 done local sparse slot at step 1. reducer2 = 2784
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 125638
+0 done delegated sparse slot at step 0. reducer2 = 23157
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 128062
+active(11)>=55812
+0 done delegated sparse slot at step 1. reducer2 = 2907
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 4.639883 (s)
+0: reducer = 358282
+0: reducer = 697691
+process_vertices took 0.201577 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 29679 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 29679
+0 send_buffer delegated_start_2 = 55688
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 29679
+0 done local sparse slot at step 0. reducer2 = 4778
+0 local sparse slot buffer_size = 26009
+0 done local sparse slot at step 1. reducer2 = 545
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 26009
+0 done delegated sparse slot at step 0. reducer2 = 3809
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 29679
+0 done delegated sparse slot at step 1. reducer2 = 542
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 1.199935 (s)
+active(12)>=9674
+0: reducer = 63264
+0: reducer = 129228
+process_vertices took 0.167394 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 5317 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 5317
+0 send_buffer delegated_start_2 = 9647
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 5317
+0 done local sparse slot at step 0. reducer2 = 830
+0 local sparse slot buffer_size = 4330
+0 done local sparse slot at step 1. reducer2 = 108
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 4330
+0 done delegated sparse slot at step 0. reducer2 = 1005
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 5317
+0 done delegated sparse slot at step 1. reducer2 = 102
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.352987 (s)
+active(13)>=2045
+0: reducer = 11145
+0: reducer = 35549
+process_vertices took 0.168121 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 936 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 936
+0 send_buffer delegated_start_2 = 2035
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 936
+0 done local sparse slot at step 0. reducer2 = 230
+0 local sparse slot buffer_size = 1099
+0 done local sparse slot at step 1. reducer2 = 51
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 1099
+0 done delegated sparse slot at step 0. reducer2 = 497
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 936
+0 done delegated sparse slot at step 1. reducer2 = 18
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.219933 (s)
+active(14)>=796
+0: reducer = 4229
+0: reducer = 17684
+process_vertices took 0.249955 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 276 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 276
+0 send_buffer delegated_start_2 = 784
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 276
+0 done local sparse slot at step 0. reducer2 = 117
+0 local sparse slot buffer_size = 508
+0 done local sparse slot at step 1. reducer2 = 33
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 508
+0 done delegated sparse slot at step 0. reducer2 = 312
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 276
+0 done delegated sparse slot at step 1. reducer2 = 5
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.279927 (s)
+active(15)>=467
+0: reducer = 2133
+0: reducer = 9773
+process_vertices took 0.259749 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 150 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 150
+0 send_buffer delegated_start_2 = 462
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 150
+0 done local sparse slot at step 0. reducer2 = 59
+0 local sparse slot buffer_size = 312
+0 done local sparse slot at step 1. reducer2 = 11
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 312
+0 done delegated sparse slot at step 0. reducer2 = 260
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 150
+0 done delegated sparse slot at step 1. reducer2 = 1
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.289895 (s)
+active(16)>=331
+0: reducer = 1201
+0: reducer = 7825
+process_vertices took 0.288639 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 70 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 70
+0 send_buffer delegated_start_2 = 330
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 70
+0 done local sparse slot at step 0. reducer2 = 40
+0 local sparse slot buffer_size = 260
+0 done local sparse slot at step 1. reducer2 = 10
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 260
+0 done delegated sparse slot at step 0. reducer2 = 199
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 70
+0 done delegated sparse slot at step 1. reducer2 = 2
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.305415 (s)
+active(17)>=251
+0: reducer = 797
+0: reducer = 6381
+process_vertices took 0.245003 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 50 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 50
+0 send_buffer delegated_start_2 = 250
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 50
+0 done local sparse slot at step 0. reducer2 = 31
+0 local sparse slot buffer_size = 200
+0 done local sparse slot at step 1. reducer2 = 8
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 200
+0 done delegated sparse slot at step 0. reducer2 = 153
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 50
+0 done delegated sparse slot at step 1. reducer2 = 1
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.260442 (s)
+active(18)>=193
+0: reducer = 698
+0: reducer = 5251
+process_vertices took 0.239294 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 39 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 39
+0 send_buffer delegated_start_2 = 192
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 39
+0 done local sparse slot at step 0. reducer2 = 29
+0 local sparse slot buffer_size = 153
+0 done local sparse slot at step 1. reducer2 = 4
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 153
+0 done delegated sparse slot at step 0. reducer2 = 137
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 39
+0 done delegated sparse slot at step 1. reducer2 = 4
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.260506 (s)
+active(19)>=174
+0: reducer = 567
+0: reducer = 5081
+process_vertices took 0.288508 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 33 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 33
+0 send_buffer delegated_start_2 = 170
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 33
+0 done local sparse slot at step 0. reducer2 = 22
+0 local sparse slot buffer_size = 137
+0 done local sparse slot at step 1. reducer2 = 1
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 137
+0 done delegated sparse slot at step 0. reducer2 = 127
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 33
+0 done delegated sparse slot at step 1. reducer2 = 4
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.306309 (s)
+active(20)>=154
+0: reducer = 502
+0: reducer = 5045
+process_vertices took 0.267973 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 23 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 23
+0 send_buffer delegated_start_2 = 150
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 23
+0 done local sparse slot at step 0. reducer2 = 17
+0 local sparse slot buffer_size = 127
+0 done local sparse slot at step 1. reducer2 = 3
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 127
+0 done delegated sparse slot at step 0. reducer2 = 131
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 23
+0 done delegated sparse slot at step 1. reducer2 = 3
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.285350 (s)
+active(21)>=154
+0: reducer = 491
+0: reducer = 5213
+process_vertices took 0.286313 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 20 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 20
+0 send_buffer delegated_start_2 = 153
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 20
+0 done local sparse slot at step 0. reducer2 = 15
+0 local sparse slot buffer_size = 133
+0 done local sparse slot at step 1. reducer2 = 5
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 133
+0 done delegated sparse slot at step 0. reducer2 = 121
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 20
+0 done delegated sparse slot at step 1. reducer2 = 1
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.303695 (s)
+active(22)>=142
+0: reducer = 555
+0: reducer = 4998
+process_vertices took 0.278358 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 20 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 20
+0 send_buffer delegated_start_2 = 139
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 20
+0 done local sparse slot at step 0. reducer2 = 14
+0 local sparse slot buffer_size = 119
+0 done local sparse slot at step 1. reducer2 = 6
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 119
+0 done delegated sparse slot at step 0. reducer2 = 101
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 20
+0 done delegated sparse slot at step 1. reducer2 = 1
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.298620 (s)
+active(23)>=122
+0: reducer = 500
+0: reducer = 4600
+process_vertices took 0.279577 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 20 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 20
+0 send_buffer delegated_start_2 = 121
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 20
+0 done local sparse slot at step 0. reducer2 = 12
+0 local sparse slot buffer_size = 101
+0 done local sparse slot at step 1. reducer2 = 5
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 101
+0 done delegated sparse slot at step 0. reducer2 = 89
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 20
+0 done delegated sparse slot at step 1. reducer2 = 1
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.296512 (s)
+active(24)>=107
+0: reducer = 331
+0: reducer = 3769
+process_vertices took 0.257797 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 17 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 17
+0 send_buffer delegated_start_2 = 107
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 17
+0 done local sparse slot at step 0. reducer2 = 10
+0 local sparse slot buffer_size = 90
+0 done local sparse slot at step 1. reducer2 = 4
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 90
+0 done delegated sparse slot at step 0. reducer2 = 61
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 17
+0 done delegated sparse slot at step 1. reducer2 = 1
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.274889 (s)
+active(25)>=76
+0: reducer = 128
+0: reducer = 2654
+process_vertices took 0.300676 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 14 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 14
+0 send_buffer delegated_start_2 = 76
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 14
+0 done local sparse slot at step 0. reducer2 = 10
+0 local sparse slot buffer_size = 62
+0 done local sparse slot at step 1. reducer2 = 1
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 62
+0 done delegated sparse slot at step 0. reducer2 = 52
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 14
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.321637 (s)
+active(26)>=63
+0: reducer = 133
+0: reducer = 1908
+process_vertices took 0.279821 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 11 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 11
+0 send_buffer delegated_start_2 = 62
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 11
+0 done local sparse slot at step 0. reducer2 = 10
+0 local sparse slot buffer_size = 51
+0 done local sparse slot at step 1. reducer2 = 3
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 51
+0 done delegated sparse slot at step 0. reducer2 = 42
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 11
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.295385 (s)
+active(27)>=55
+0: reducer = 158
+0: reducer = 1405
+process_vertices took 0.273106 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 13 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 13
+0 send_buffer delegated_start_2 = 55
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 13
+0 done local sparse slot at step 0. reducer2 = 10
+0 local sparse slot buffer_size = 42
+0 done local sparse slot at step 1. reducer2 = 1
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 42
+0 done delegated sparse slot at step 0. reducer2 = 30
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 13
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.290689 (s)
+active(28)>=41
+0: reducer = 161
+0: reducer = 868
+process_vertices took 0.301182 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 11 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 11
+0 send_buffer delegated_start_2 = 41
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 11
+0 done local sparse slot at step 0. reducer2 = 11
+0 local sparse slot buffer_size = 30
+0 done local sparse slot at step 1. reducer2 = 2
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 30
+0 done delegated sparse slot at step 0. reducer2 = 25
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 11
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.315561 (s)
+active(29)>=38
+0: reducer = 175
+0: reducer = 670
+process_vertices took 0.256359 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 13 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 13
+0 send_buffer delegated_start_2 = 38
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 13
+0 done local sparse slot at step 0. reducer2 = 11
+0 local sparse slot buffer_size = 25
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 25
+0 done delegated sparse slot at step 0. reducer2 = 22
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 13
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.266697 (s)
+active(30)>=33
+0: reducer = 136
+0: reducer = 549
+process_vertices took 0.189456 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 11 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 11
+0 send_buffer delegated_start_2 = 33
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 11
+0 done local sparse slot at step 0. reducer2 = 11
+0 local sparse slot buffer_size = 22
+0 done local sparse slot at step 1. reducer2 = 1
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 22
+0 done delegated sparse slot at step 0. reducer2 = 21
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 11
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.199474 (s)
+active(31)>=33
+0: reducer = 121
+0: reducer = 421
+process_vertices took 0.231742 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 12 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 12
+0 send_buffer delegated_start_2 = 33
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 12
+0 done local sparse slot at step 0. reducer2 = 11
+0 local sparse slot buffer_size = 21
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 21
+0 done delegated sparse slot at step 0. reducer2 = 19
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 12
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.252887 (s)
+active(32)>=30
+0: reducer = 111
+0: reducer = 390
+process_vertices took 0.276643 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 11 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 11
+0 send_buffer delegated_start_2 = 30
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 11
+0 done local sparse slot at step 0. reducer2 = 10
+0 local sparse slot buffer_size = 19
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 19
+0 done delegated sparse slot at step 0. reducer2 = 19
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 11
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.299726 (s)
+active(33)>=29
+0: reducer = 84
+0: reducer = 336
+process_vertices took 0.282635 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 10 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 10
+0 send_buffer delegated_start_2 = 28
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 10
+0 done local sparse slot at step 0. reducer2 = 9
+0 local sparse slot buffer_size = 18
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 18
+0 done delegated sparse slot at step 0. reducer2 = 16
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 10
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.296580 (s)
+active(34)>=25
+0: reducer = 89
+0: reducer = 276
+process_vertices took 0.273849 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 9 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 9
+0 send_buffer delegated_start_2 = 25
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 9
+0 done local sparse slot at step 0. reducer2 = 6
+0 local sparse slot buffer_size = 16
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 16
+0 done delegated sparse slot at step 0. reducer2 = 14
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 9
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.286719 (s)
+active(35)>=20
+0: reducer = 60
+0: reducer = 176
+process_vertices took 0.225946 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 6 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 6
+0 send_buffer delegated_start_2 = 20
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 6
+0 done local sparse slot at step 0. reducer2 = 4
+0 local sparse slot buffer_size = 14
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 14
+0 done delegated sparse slot at step 0. reducer2 = 14
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 6
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.240888 (s)
+active(36)>=18
+0: reducer = 41
+0: reducer = 158
+process_vertices took 0.265778 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 4 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 4
+0 send_buffer delegated_start_2 = 18
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 4
+0 done local sparse slot at step 0. reducer2 = 2
+0 local sparse slot buffer_size = 14
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 14
+0 done delegated sparse slot at step 0. reducer2 = 15
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 4
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.288712 (s)
+active(37)>=17
+0: reducer = 10
+0: reducer = 138
+process_vertices took 0.267832 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2
+0 send_buffer delegated_start_2 = 17
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 0. reducer2 = 2
+0 local sparse slot buffer_size = 15
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 15
+0 done delegated sparse slot at step 0. reducer2 = 18
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.282783 (s)
+active(38)>=20
+0: reducer = 10
+0: reducer = 171
+process_vertices took 0.259797 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2
+0 send_buffer delegated_start_2 = 20
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 0. reducer2 = 2
+0 local sparse slot buffer_size = 18
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 18
+0 done delegated sparse slot at step 0. reducer2 = 18
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.268790 (s)
+active(39)>=20
+0: reducer = 10
+0: reducer = 181
+process_vertices took 0.210790 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2
+0 send_buffer delegated_start_2 = 20
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 0. reducer2 = 2
+0 local sparse slot buffer_size = 18
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 18
+0 done delegated sparse slot at step 0. reducer2 = 15
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.223766 (s)
+active(40)>=17
+0: reducer = 10
+0: reducer = 140
+process_vertices took 0.250793 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2
+0 send_buffer delegated_start_2 = 16
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 0. reducer2 = 2
+0 local sparse slot buffer_size = 14
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 14
+0 done delegated sparse slot at step 0. reducer2 = 13
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.266638 (s)
+active(41)>=15
+0: reducer = 10
+0: reducer = 134
+process_vertices took 0.281907 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2
+0 send_buffer delegated_start_2 = 15
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 0. reducer2 = 2
+0 local sparse slot buffer_size = 13
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 13
+0 done delegated sparse slot at step 0. reducer2 = 9
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.296792 (s)
+active(42)>=11
+0: reducer = 10
+0: reducer = 93
+process_vertices took 0.252850 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2
+0 send_buffer delegated_start_2 = 11
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 0. reducer2 = 2
+0 local sparse slot buffer_size = 9
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 9
+0 done delegated sparse slot at step 0. reducer2 = 9
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.270507 (s)
+active(43)>=11
+0: reducer = 10
+0: reducer = 91
+process_vertices took 0.294134 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2
+0 send_buffer delegated_start_2 = 11
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 0. reducer2 = 2
+0 local sparse slot buffer_size = 9
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 9
+0 done delegated sparse slot at step 0. reducer2 = 6
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.306894 (s)
+active(44)>=8
+0: reducer = 10
+0: reducer = 64
+process_vertices took 0.210970 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2
+0 send_buffer delegated_start_2 = 8
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 0. reducer2 = 2
+0 local sparse slot buffer_size = 6
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 6
+0 done delegated sparse slot at step 0. reducer2 = 4
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.225667 (s)
+active(45)>=6
+0: reducer = 10
+0: reducer = 44
+process_vertices took 0.266028 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2
+0 send_buffer delegated_start_2 = 6
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 0. reducer2 = 2
+0 local sparse slot buffer_size = 4
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 4
+0 done delegated sparse slot at step 0. reducer2 = 3
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.283738 (s)
+active(46)>=5
+0: reducer = 10
+0: reducer = 40
+process_vertices took 0.286057 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2
+0 send_buffer delegated_start_2 = 5
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 0. reducer2 = 2
+0 local sparse slot buffer_size = 3
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 3
+0 done delegated sparse slot at step 0. reducer2 = 2
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.300694 (s)
+active(47)>=4
+0: reducer = 9
+0: reducer = 27
+process_vertices took 0.245092 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2
+0 send_buffer delegated_start_2 = 4
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 0. reducer2 = 1
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 0. reducer2 = 2
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.258694 (s)
+active(48)>=3
+0: reducer = 4
+0: reducer = 22
+process_vertices took 0.250130 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 1 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 1
+0 send_buffer delegated_start_2 = 3
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 1
+0 done local sparse slot at step 0. reducer2 = 0
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 0. reducer2 = 2
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 1
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.264604 (s)
+active(49)>=2
+0: reducer = 0
+0: reducer = 19
+process_vertices took 0.261261 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 0 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 0
+0 send_buffer delegated_start_2 = 2
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 0
+0 done local sparse slot at step 0. reducer2 = 0
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 0. reducer2 = 2
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 0
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.278704 (s)
+active(50)>=2
+0: reducer = 0
+0: reducer = 18
+process_vertices took 0.283323 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 0 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 0
+0 send_buffer delegated_start_2 = 2
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 0
+0 done local sparse slot at step 0. reducer2 = 0
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 0. reducer2 = 2
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 0
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.303904 (s)
+active(51)>=2
+0: reducer = 0
+0: reducer = 17
+process_vertices took 0.282270 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 0 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 0
+0 send_buffer delegated_start_2 = 2
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 0
+0 done local sparse slot at step 0. reducer2 = 0
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 0. reducer2 = 2
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 0
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.294814 (s)
+active(52)>=2
+0: reducer = 0
+0: reducer = 14
+process_vertices took 0.221253 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 0 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 0
+0 send_buffer delegated_start_2 = 2
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 0
+0 done local sparse slot at step 0. reducer2 = 0
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 0. reducer2 = 1
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 0
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.235771 (s)
+active(53)>=1
+0: reducer = 0
+0: reducer = 6
+process_vertices took 0.258124 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 0 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 0
+0 send_buffer delegated_start_2 = 1
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 0
+0 done local sparse slot at step 0. reducer2 = 0
+0 local sparse slot buffer_size = 1
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 1
+0 done delegated sparse slot at step 0. reducer2 = 0
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 0
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.269667 (s)
+exec_time=186.195176(s)
+distance[3943630]=0.000000
+0: outgoing bitmap_cache_hit = 9601406
+0: outgoing bitmap_cache_miss = 0
+0: incoming bitmap_cache_hit = 0
+0: incoming bitmap_cache_miss = 0
+active(0)>=1
+0: reducer = 1
+0: reducer = 1
+process_vertices took 0.278367 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 1 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 1
+0 send_buffer delegated_start_2 = 1
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 1
+0 done local sparse slot at step 0. reducer2 = 1
+0 local sparse slot buffer_size = 0
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 0
+0 done delegated sparse slot at step 0. reducer2 = 0
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 1
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.292848 (s)
+active(1)>=1
+0: reducer = 7
+0: reducer = 7
+process_vertices took 0.259290 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 1 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 1
+0 send_buffer delegated_start_2 = 1
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 1
+0 done local sparse slot at step 0. reducer2 = 2
+0 local sparse slot buffer_size = 0
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 0
+0 done delegated sparse slot at step 0. reducer2 = 0
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 1
+0 done delegated sparse slot at step 1. reducer2 = 4
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.270828 (s)
+active(2)>=6
+0: reducer = 133
+0: reducer = 503
+process_vertices took 0.233169 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2
+0 send_buffer delegated_start_2 = 6
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 0. reducer2 = 72
+0 local sparse slot buffer_size = 4
+0 done local sparse slot at step 1. reducer2 = 129
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 4
+0 done delegated sparse slot at step 0. reducer2 = 224
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 1. reducer2 = 48
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.246760 (s)
+active(3)>=473
+0: reducer = 25309
+0: reducer = 53993
+process_vertices took 0.254222 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 197 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 197
+0 send_buffer delegated_start_2 = 457
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 197
+0 done local sparse slot at step 0. reducer2 = 12092
+0 local sparse slot buffer_size = 260
+0 done local sparse slot at step 1. reducer2 = 6195
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 260
+0 done delegated sparse slot at step 0. reducer2 = 13337
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 197
+0 done delegated sparse slot at step 1. reducer2 = 6416
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.288572 (s)
+active(4)>=38040
+0: reducer = 1457540
+0: reducer = 2994533
+process_vertices took 0.259396 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 16003 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 16003
+0 send_buffer delegated_start_2 = 33429
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 16003
+0 done local sparse slot at step 0. reducer2 = 362458
+0 local sparse slot buffer_size = 17426
+0 done local sparse slot at step 1. reducer2 = 103161
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 17426
+0 done delegated sparse slot at step 0. reducer2 = 384457
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 16003
+active(5)>=957640
+0 done delegated sparse slot at step 1. reducer2 = 107564
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.994693 (s)
+0: reducer = 16845137
+0: reducer = 33553217
+process_vertices took 0.224444 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 337632 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 337632
+0 send_buffer delegated_start_2 = 697720
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 337632
+0 done local sparse slot at step 0. reducer2 = 1687924
+0 local sparse slot buffer_size = 360088
+0 done local sparse slot at step 1. reducer2 = 300258
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 360088
+0 done delegated sparse slot at step 0. reducer2 = 1721969
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 337632
+active(6)>=4043741
+0 done delegated sparse slot at step 1. reducer2 = 333590
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 13.798737 (s)
+0: reducer = 37721106
+0: reducer = 74425561
+process_vertices took 0.217390 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 1258675 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 1258675
+0 send_buffer delegated_start_2 = 2581626
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 1258675
+0 done local sparse slot at step 0. reducer2 = 1613525
+0 local sparse slot buffer_size = 1322951
+0 done local sparse slot at step 1. reducer2 = 277105
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 1322951
+0 done delegated sparse slot at step 0. reducer2 = 1689706
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 1258675
+0 done delegated sparse slot at step 1. reducer2 = 312369
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 47.016630 (s)
+active(7)>=3892705
+0: reducer = 34742264
+0: reducer = 68592628
+process_vertices took 0.207478 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 1416960 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 1416960
+0 send_buffer delegated_start_2 = 2919320
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 1416960
+0 done local sparse slot at step 0. reducer2 = 955481
+0 local sparse slot buffer_size = 1502360
+0 done local sparse slot at step 1. reducer2 = 170026
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 1502360
+Connection to e13-43 closed by remote host.
+Connection to e13-44 closed by remote host.
+0 done delegated sparse slot at step 0. reducer2 = 985168
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 1416960
+active(8)>=2305627
+0 done delegated sparse slot at step 1. reducer2 = 194952
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 52.058169 (s)
+0: reducer = 20845244
+0: reducer = 41278674
+process_vertices took 0.163087 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 1028107 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 1028107
+0 send_buffer delegated_start_2 = 2104701
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 1028107
+0 done local sparse slot at step 0. reducer2 = 406295
+0 local sparse slot buffer_size = 1076594
+0 done local sparse slot at step 1. reducer2 = 65463
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 1076594
+0 done delegated sparse slot at step 0. reducer2 = 418987
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 1028107
+0 done delegated sparse slot at step 1. reducer2 = 72046
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 37.160178 (s)
+active(9)>=962791
+0: reducer = 7384482
+0: reducer = 14726900
+process_vertices took 0.190527 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 460310 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 460310
+0 send_buffer delegated_start_2 = 939613
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 460310
+0 done local sparse slot at step 0. reducer2 = 113629
+0 local sparse slot buffer_size = 479303
+0 done local sparse slot at step 1. reducer2 = 15248
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 479303
+0 done delegated sparse slot at step 0. reducer2 = 111041
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 460310
+0 done delegated sparse slot at step 1. reducer2 = 15358
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 16.558142 (s)
+active(10)>=255276
+0: reducer = 1709955
+0: reducer = 3430779
+process_vertices took 0.244083 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 128062 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 128062
+0 send_buffer delegated_start_2 = 253700
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 128062
+0 done local sparse slot at step 0. reducer2 = 26964
+0 local sparse slot buffer_size = 125638
+0 done local sparse slot at step 1. reducer2 = 2783
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 125638
+0 done delegated sparse slot at step 0. reducer2 = 23153
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 128062
+0 done delegated sparse slot at step 1. reducer2 = 2907
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 4.723043 (s)
+active(11)>=55807
+0: reducer = 358282
+0: reducer = 697691
+process_vertices took 0.197781 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 29679 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 29679
+0 send_buffer delegated_start_2 = 55688
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 29679
+0 done local sparse slot at step 0. reducer2 = 4779
+0 local sparse slot buffer_size = 26009
+0 done local sparse slot at step 1. reducer2 = 545
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 26009
+0 done delegated sparse slot at step 0. reducer2 = 3809
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 29679
+active(12)>=9675
+0 done delegated sparse slot at step 1. reducer2 = 542
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 1.194417 (s)
+0: reducer = 63264
+0: reducer = 129228
+process_vertices took 0.208078 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 5317 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 5317
+0 send_buffer delegated_start_2 = 9647
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 5317
+0 done local sparse slot at step 0. reducer2 = 830
+0 local sparse slot buffer_size = 4330
+0 done local sparse slot at step 1. reducer2 = 108
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 4330
+0 done delegated sparse slot at step 0. reducer2 = 1005
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 5317
+0 done delegated sparse slot at step 1. reducer2 = 102
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.393120 (s)
+active(13)>=2045
+0: reducer = 11145
+0: reducer = 35549
+process_vertices took 0.152675 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 936 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 936
+0 send_buffer delegated_start_2 = 2035
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 936
+0 done local sparse slot at step 0. reducer2 = 229
+0 local sparse slot buffer_size = 1099
+0 done local sparse slot at step 1. reducer2 = 51
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 1099
+0 done delegated sparse slot at step 0. reducer2 = 497
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 936
+0 done delegated sparse slot at step 1. reducer2 = 18
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.203380 (s)
+active(14)>=795
+0: reducer = 4229
+0: reducer = 17684
+process_vertices took 0.228065 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 276 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 276
+0 send_buffer delegated_start_2 = 784
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 276
+0 done local sparse slot at step 0. reducer2 = 117
+0 local sparse slot buffer_size = 508
+0 done local sparse slot at step 1. reducer2 = 33
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 508
+0 done delegated sparse slot at step 0. reducer2 = 312
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 276
+0 done delegated sparse slot at step 1. reducer2 = 5
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.256820 (s)
+active(15)>=467
+0: reducer = 2133
+0: reducer = 9773
+process_vertices took 0.239959 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 150 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 150
+0 send_buffer delegated_start_2 = 462
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 150
+0 done local sparse slot at step 0. reducer2 = 59
+0 local sparse slot buffer_size = 312
+0 done local sparse slot at step 1. reducer2 = 11
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 312
+0 done delegated sparse slot at step 0. reducer2 = 260
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 150
+0 done delegated sparse slot at step 1. reducer2 = 1
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.263262 (s)
+active(16)>=331
+0: reducer = 1201
+0: reducer = 7825
+process_vertices took 0.254472 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 70 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 70
+0 send_buffer delegated_start_2 = 330
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 70
+0 done local sparse slot at step 0. reducer2 = 40
+0 local sparse slot buffer_size = 260
+0 done local sparse slot at step 1. reducer2 = 10
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 260
+0 done delegated sparse slot at step 0. reducer2 = 199
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 70
+0 done delegated sparse slot at step 1. reducer2 = 2
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.275463 (s)
+active(17)>=251
+0: reducer = 797
+0: reducer = 6381
+process_vertices took 0.251754 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 50 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 50
+0 send_buffer delegated_start_2 = 250
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 50
+0 done local sparse slot at step 0. reducer2 = 31
+0 local sparse slot buffer_size = 200
+0 done local sparse slot at step 1. reducer2 = 8
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 200
+0 done delegated sparse slot at step 0. reducer2 = 153
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 50
+0 done delegated sparse slot at step 1. reducer2 = 1
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.270126 (s)
+active(18)>=193
+0: reducer = 698
+0: reducer = 5251
+process_vertices took 0.250351 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 39 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 39
+0 send_buffer delegated_start_2 = 192
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 39
+0 done local sparse slot at step 0. reducer2 = 29
+0 local sparse slot buffer_size = 153
+0 done local sparse slot at step 1. reducer2 = 4
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 153
+0 done delegated sparse slot at step 0. reducer2 = 137
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 39
+0 done delegated sparse slot at step 1. reducer2 = 4
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.266076 (s)
+active(19)>=174
+0: reducer = 567
+0: reducer = 5081
+process_vertices took 0.228043 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 33 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 33
+0 send_buffer delegated_start_2 = 170
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 33
+0 done local sparse slot at step 0. reducer2 = 22
+0 local sparse slot buffer_size = 137
+0 done local sparse slot at step 1. reducer2 = 1
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 137
+0 done delegated sparse slot at step 0. reducer2 = 127
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 33
+0 done delegated sparse slot at step 1. reducer2 = 4
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.245864 (s)
+active(20)>=154
+0: reducer = 502
+0: reducer = 5045
+process_vertices took 0.276927 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 23 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 23
+0 send_buffer delegated_start_2 = 150
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 23
+0 done local sparse slot at step 0. reducer2 = 17
+0 local sparse slot buffer_size = 127
+0 done local sparse slot at step 1. reducer2 = 3
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 127
+0 done delegated sparse slot at step 0. reducer2 = 131
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 23
+0 done delegated sparse slot at step 1. reducer2 = 3
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.301347 (s)
+active(21)>=154
+0: reducer = 491
+0: reducer = 5213
+process_vertices took 0.290293 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 20 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 20
+0 send_buffer delegated_start_2 = 153
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 20
+0 done local sparse slot at step 0. reducer2 = 15
+0 local sparse slot buffer_size = 133
+0 done local sparse slot at step 1. reducer2 = 5
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 133
+0 done delegated sparse slot at step 0. reducer2 = 121
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 20
+0 done delegated sparse slot at step 1. reducer2 = 1
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.314786 (s)
+active(22)>=142
+0: reducer = 555
+0: reducer = 4998
+process_vertices took 0.278270 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 20 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 20
+0 send_buffer delegated_start_2 = 139
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 20
+0 done local sparse slot at step 0. reducer2 = 14
+0 local sparse slot buffer_size = 119
+0 done local sparse slot at step 1. reducer2 = 6
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 119
+0 done delegated sparse slot at step 0. reducer2 = 101
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 20
+0 done delegated sparse slot at step 1. reducer2 = 1
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.295580 (s)
+active(23)>=122
+0: reducer = 500
+0: reducer = 4600
+process_vertices took 0.237423 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 20 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 20
+0 send_buffer delegated_start_2 = 121
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 20
+0 done local sparse slot at step 0. reducer2 = 12
+0 local sparse slot buffer_size = 101
+0 done local sparse slot at step 1. reducer2 = 5
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 101
+0 done delegated sparse slot at step 0. reducer2 = 89
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 20
+0 done delegated sparse slot at step 1. reducer2 = 1
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.254334 (s)
+active(24)>=107
+0: reducer = 331
+0: reducer = 3769
+process_vertices took 0.257832 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 17 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 17
+0 send_buffer delegated_start_2 = 107
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 17
+0 done local sparse slot at step 0. reducer2 = 10
+0 local sparse slot buffer_size = 90
+0 done local sparse slot at step 1. reducer2 = 4
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 90
+0 done delegated sparse slot at step 0. reducer2 = 61
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 17
+0 done delegated sparse slot at step 1. reducer2 = 1
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.274508 (s)
+active(25)>=76
+0: reducer = 128
+0: reducer = 2654
+process_vertices took 0.265071 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 14 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 14
+0 send_buffer delegated_start_2 = 76
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 14
+0 done local sparse slot at step 0. reducer2 = 10
+0 local sparse slot buffer_size = 62
+0 done local sparse slot at step 1. reducer2 = 1
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 62
+0 done delegated sparse slot at step 0. reducer2 = 52
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 14
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.279043 (s)
+active(26)>=63
+0: reducer = 133
+0: reducer = 1908
+process_vertices took 0.227746 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 11 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 11
+0 send_buffer delegated_start_2 = 62
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 11
+0 done local sparse slot at step 0. reducer2 = 10
+0 local sparse slot buffer_size = 51
+0 done local sparse slot at step 1. reducer2 = 3
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 51
+0 done delegated sparse slot at step 0. reducer2 = 42
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 11
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.238378 (s)
+active(27)>=55
+0: reducer = 158
+0: reducer = 1405
+process_vertices took 0.185193 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 13 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 13
+0 send_buffer delegated_start_2 = 55
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 13
+0 done local sparse slot at step 0. reducer2 = 10
+0 local sparse slot buffer_size = 42
+0 done local sparse slot at step 1. reducer2 = 1
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 42
+0 done delegated sparse slot at step 0. reducer2 = 30
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 13
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.200744 (s)
+active(28)>=41
+0: reducer = 161
+0: reducer = 868
+process_vertices took 0.263186 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 11 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 11
+0 send_buffer delegated_start_2 = 41
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 11
+0 done local sparse slot at step 0. reducer2 = 11
+0 local sparse slot buffer_size = 30
+0 done local sparse slot at step 1. reducer2 = 2
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 30
+0 done delegated sparse slot at step 0. reducer2 = 25
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 11
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.278528 (s)
+active(29)>=38
+0: reducer = 175
+0: reducer = 670
+process_vertices took 0.252423 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 13 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 13
+0 send_buffer delegated_start_2 = 38
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 13
+0 done local sparse slot at step 0. reducer2 = 11
+0 local sparse slot buffer_size = 25
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 25
+0 done delegated sparse slot at step 0. reducer2 = 22
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 13
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.262197 (s)
+active(30)>=33
+0: reducer = 136
+0: reducer = 549
+process_vertices took 0.177293 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 11 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 11
+0 send_buffer delegated_start_2 = 33
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 11
+0 done local sparse slot at step 0. reducer2 = 11
+0 local sparse slot buffer_size = 22
+0 done local sparse slot at step 1. reducer2 = 1
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 22
+0 done delegated sparse slot at step 0. reducer2 = 21
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 11
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.191976 (s)
+active(31)>=33
+0: reducer = 121
+0: reducer = 421
+process_vertices took 0.257745 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 12 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 12
+0 send_buffer delegated_start_2 = 33
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 12
+0 done local sparse slot at step 0. reducer2 = 11
+0 local sparse slot buffer_size = 21
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 21
+0 done delegated sparse slot at step 0. reducer2 = 19
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 12
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.267897 (s)
+active(32)>=30
+0: reducer = 111
+0: reducer = 390
+process_vertices took 0.206638 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 11 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 11
+0 send_buffer delegated_start_2 = 30
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 11
+0 done local sparse slot at step 0. reducer2 = 10
+0 local sparse slot buffer_size = 19
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 19
+0 done delegated sparse slot at step 0. reducer2 = 19
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 11
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.221500 (s)
+active(33)>=29
+0: reducer = 84
+0: reducer = 336
+process_vertices took 0.244905 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 10 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 10
+0 send_buffer delegated_start_2 = 28
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 10
+0 done local sparse slot at step 0. reducer2 = 9
+0 local sparse slot buffer_size = 18
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 18
+0 done delegated sparse slot at step 0. reducer2 = 16
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 10
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.257951 (s)
+active(34)>=25
+0: reducer = 89
+0: reducer = 276
+process_vertices took 0.230706 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 9 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 9
+0 send_buffer delegated_start_2 = 25
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 9
+0 done local sparse slot at step 0. reducer2 = 6
+0 local sparse slot buffer_size = 16
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 16
+0 done delegated sparse slot at step 0. reducer2 = 14
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 9
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.238018 (s)
+active(35)>=20
+0: reducer = 60
+0: reducer = 176
+process_vertices took 0.164484 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 6 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 6
+0 send_buffer delegated_start_2 = 20
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 6
+0 done local sparse slot at step 0. reducer2 = 4
+0 local sparse slot buffer_size = 14
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 14
+0 done delegated sparse slot at step 0. reducer2 = 14
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 6
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.177408 (s)
+active(36)>=18
+0: reducer = 41
+0: reducer = 158
+process_vertices took 0.271790 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 4 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 4
+0 send_buffer delegated_start_2 = 18
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 4
+0 done local sparse slot at step 0. reducer2 = 2
+0 local sparse slot buffer_size = 14
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 14
+0 done delegated sparse slot at step 0. reducer2 = 15
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 4
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.286682 (s)
+active(37)>=17
+0: reducer = 10
+0: reducer = 138
+process_vertices took 0.276854 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2
+0 send_buffer delegated_start_2 = 17
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 0. reducer2 = 2
+0 local sparse slot buffer_size = 15
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 15
+0 done delegated sparse slot at step 0. reducer2 = 18
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.289610 (s)
+active(38)>=20
+0: reducer = 10
+0: reducer = 171
+process_vertices took 0.222967 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2
+0 send_buffer delegated_start_2 = 20
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 0. reducer2 = 2
+0 local sparse slot buffer_size = 18
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 18
+0 done delegated sparse slot at step 0. reducer2 = 18
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.243892 (s)
+active(39)>=20
+0: reducer = 10
+0: reducer = 181
+process_vertices took 0.286808 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2
+0 send_buffer delegated_start_2 = 20
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 0. reducer2 = 2
+0 local sparse slot buffer_size = 18
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 18
+0 done delegated sparse slot at step 0. reducer2 = 15
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.308712 (s)
+active(40)>=17
+0: reducer = 10
+0: reducer = 140
+process_vertices took 0.286939 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2
+0 send_buffer delegated_start_2 = 16
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 0. reducer2 = 2
+0 local sparse slot buffer_size = 14
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 14
+0 done delegated sparse slot at step 0. reducer2 = 13
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.299620 (s)
+active(41)>=15
+0: reducer = 10
+0: reducer = 134
+process_vertices took 0.259967 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2
+0 send_buffer delegated_start_2 = 15
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 0. reducer2 = 2
+0 local sparse slot buffer_size = 13
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 13
+0 done delegated sparse slot at step 0. reducer2 = 9
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.279564 (s)
+active(42)>=11
+0: reducer = 10
+0: reducer = 93
+process_vertices took 0.280131 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2
+0 send_buffer delegated_start_2 = 11
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 0. reducer2 = 2
+0 local sparse slot buffer_size = 9
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 9
+0 done delegated sparse slot at step 0. reducer2 = 9
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.297943 (s)
+active(43)>=11
+0: reducer = 10
+0: reducer = 91
+process_vertices took 0.287920 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2
+0 send_buffer delegated_start_2 = 11
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 0. reducer2 = 2
+0 local sparse slot buffer_size = 9
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 9
+0 done delegated sparse slot at step 0. reducer2 = 6
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.300709 (s)
+active(44)>=8
+0: reducer = 10
+0: reducer = 64
+process_vertices took 0.218987 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2
+0 send_buffer delegated_start_2 = 8
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 0. reducer2 = 2
+0 local sparse slot buffer_size = 6
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 6
+0 done delegated sparse slot at step 0. reducer2 = 4
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.233684 (s)
+active(45)>=6
+0: reducer = 10
+0: reducer = 44
+process_vertices took 0.274077 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2
+0 send_buffer delegated_start_2 = 6
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 0. reducer2 = 2
+0 local sparse slot buffer_size = 4
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 4
+0 done delegated sparse slot at step 0. reducer2 = 3
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.294756 (s)
+active(46)>=5
+0: reducer = 10
+0: reducer = 40
+process_vertices took 0.282065 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2
+0 send_buffer delegated_start_2 = 5
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 0. reducer2 = 2
+0 local sparse slot buffer_size = 3
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 3
+0 done delegated sparse slot at step 0. reducer2 = 2
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.294713 (s)
+active(47)>=4
+0: reducer = 9
+0: reducer = 27
+process_vertices took 0.225080 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 2 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 2
+0 send_buffer delegated_start_2 = 4
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 0. reducer2 = 1
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 0. reducer2 = 2
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.242706 (s)
+active(48)>=3
+0: reducer = 4
+0: reducer = 22
+process_vertices took 0.281133 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 1 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 1
+0 send_buffer delegated_start_2 = 3
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 1
+0 done local sparse slot at step 0. reducer2 = 0
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 0. reducer2 = 2
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 1
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.290566 (s)
+active(49)>=2
+0: reducer = 0
+0: reducer = 19
+process_vertices took 0.240369 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 0 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 0
+0 send_buffer delegated_start_2 = 2
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 0
+0 done local sparse slot at step 0. reducer2 = 0
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 0. reducer2 = 2
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 0
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.256944 (s)
+active(50)>=2
+0: reducer = 0
+0: reducer = 18
+process_vertices took 0.285106 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 0 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 0
+0 send_buffer delegated_start_2 = 2
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 0
+0 done local sparse slot at step 0. reducer2 = 0
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 0. reducer2 = 2
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 0
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.302686 (s)
+active(51)>=2
+0: reducer = 0
+0: reducer = 17
+process_vertices took 0.295196 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 0 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 0
+0 send_buffer delegated_start_2 = 2
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 0
+0 done local sparse slot at step 0. reducer2 = 0
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 0. reducer2 = 2
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 0
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.312699 (s)
+active(52)>=2
+0: reducer = 0
+0: reducer = 14
+process_vertices took 0.281213 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 0 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 0
+0 send_buffer delegated_start_2 = 2
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 0
+0 done local sparse slot at step 0. reducer2 = 0
+0 local sparse slot buffer_size = 2
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 2
+0 done delegated sparse slot at step 0. reducer2 = 1
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 0
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.293831 (s)
+active(53)>=1
+0: reducer = 0
+0: reducer = 6
+process_vertices took 0.271088 (s)
+sparse mode
+0 done sparse signal.
+partition 0 socket 0 owns 0 vertices.
+partition 0 offset: 0
+partition 1 offset: 2039808
+partition 2 offset: 4206785
+0 send_buffer delegated_start_1 = 0
+0 send_buffer delegated_start_2 = 1
+0 done delegated sparse signal.
+0 local sparse slot buffer_size = 0
+0 done local sparse slot at step 0. reducer2 = 0
+0 local sparse slot buffer_size = 1
+0 done local sparse slot at step 1. reducer2 = 0
+0 serving as 1 to sparse slot 1 at step 0
+0 remote sparse slot buffer_size = 1
+0 done delegated sparse slot at step 0. reducer2 = 0
+0 serving as 1 to sparse slot 0 at step 1
+0 remote sparse slot buffer_size = 0
+0 done delegated sparse slot at step 1. reducer2 = 0
+0 sender thread joined.
+0 receiver thread joined.
+process_edges took 0.284597 (s)
+exec_time=185.968231(s)
+distance[3943630]=0.000000
+0: outgoing bitmap_cache_hit = 9601406
+0: outgoing bitmap_cache_miss = 0
+0: incoming bitmap_cache_hit = 0
+0: incoming bitmap_cache_miss = 0
+[1630108052.814941] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22de300 was not returned to mpool ucp_rkeys
+[1630108052.815036] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22de3c0 was not returned to mpool ucp_rkeys
+[1630108052.815047] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22de480 was not returned to mpool ucp_rkeys
+[1630108052.815056] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22de540 was not returned to mpool ucp_rkeys
+[1630108052.815066] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22de600 was not returned to mpool ucp_rkeys
+[1630108052.815074] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22de6c0 was not returned to mpool ucp_rkeys
+[1630108052.815084] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22de780 was not returned to mpool ucp_rkeys
+[1630108052.815093] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22de840 was not returned to mpool ucp_rkeys
+[1630108052.815102] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22de900 was not returned to mpool ucp_rkeys
+[1630108052.815151] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22de9c0 was not returned to mpool ucp_rkeys
+[1630108052.815168] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22dea80 was not returned to mpool ucp_rkeys
+[1630108052.815178] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22deb40 was not returned to mpool ucp_rkeys
+[1630108052.815191] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22dec00 was not returned to mpool ucp_rkeys
+[1630108052.815212] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22decc0 was not returned to mpool ucp_rkeys
+[1630108052.815221] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22ded80 was not returned to mpool ucp_rkeys
+[1630108052.815242] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22dee40 was not returned to mpool ucp_rkeys
+[1630108052.815251] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22def00 was not returned to mpool ucp_rkeys
+[1630108052.815272] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22defc0 was not returned to mpool ucp_rkeys
+[1630108052.815282] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22df080 was not returned to mpool ucp_rkeys
+[1630108052.815297] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22df140 was not returned to mpool ucp_rkeys
+[1630108052.815308] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22df200 was not returned to mpool ucp_rkeys
+[1630108052.815318] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22df2c0 was not returned to mpool ucp_rkeys
+[1630108052.815339] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22df380 was not returned to mpool ucp_rkeys
+[1630108052.815348] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22df440 was not returned to mpool ucp_rkeys
+[1630108052.815357] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22df500 was not returned to mpool ucp_rkeys
+[1630108052.815366] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22df5c0 was not returned to mpool ucp_rkeys
+[1630108052.815375] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22df680 was not returned to mpool ucp_rkeys
+[1630108052.815396] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22df740 was not returned to mpool ucp_rkeys
+[1630108052.815410] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22df800 was not returned to mpool ucp_rkeys
+[1630108052.815420] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22df8c0 was not returned to mpool ucp_rkeys
+[1630108052.815429] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22df980 was not returned to mpool ucp_rkeys
+[1630108052.815450] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22dfa40 was not returned to mpool ucp_rkeys
+[1630108052.815459] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22dfb00 was not returned to mpool ucp_rkeys
+[1630108052.815468] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22dfbc0 was not returned to mpool ucp_rkeys
+[1630108052.815477] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22dfc80 was not returned to mpool ucp_rkeys
+[1630108052.815486] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22dfd40 was not returned to mpool ucp_rkeys
+[1630108052.815507] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22dfe00 was not returned to mpool ucp_rkeys
+[1630108052.815517] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22dfec0 was not returned to mpool ucp_rkeys
+[1630108052.815527] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22dff80 was not returned to mpool ucp_rkeys
+[1630108052.815537] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e0040 was not returned to mpool ucp_rkeys
+[1630108052.815557] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e0100 was not returned to mpool ucp_rkeys
+[1630108052.815578] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e01c0 was not returned to mpool ucp_rkeys
+[1630108052.815592] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e0280 was not returned to mpool ucp_rkeys
+[1630108052.815602] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e0340 was not returned to mpool ucp_rkeys
+[1630108052.815612] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e0400 was not returned to mpool ucp_rkeys
+[1630108052.815621] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e04c0 was not returned to mpool ucp_rkeys
+[1630108052.815642] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e0580 was not returned to mpool ucp_rkeys
+[1630108052.815651] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e0640 was not returned to mpool ucp_rkeys
+[1630108052.815660] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e0700 was not returned to mpool ucp_rkeys
+[1630108052.815681] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e07c0 was not returned to mpool ucp_rkeys
+[1630108052.815696] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e0880 was not returned to mpool ucp_rkeys
+[1630108052.815706] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e0940 was not returned to mpool ucp_rkeys
+[1630108052.815716] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e0a00 was not returned to mpool ucp_rkeys
+[1630108052.815725] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e0ac0 was not returned to mpool ucp_rkeys
+[1630108052.815734] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e0b80 was not returned to mpool ucp_rkeys
+[1630108052.815743] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e0c40 was not returned to mpool ucp_rkeys
+[1630108052.815753] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e0d00 was not returned to mpool ucp_rkeys
+[1630108052.815762] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e0dc0 was not returned to mpool ucp_rkeys
+[1630108052.815772] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e0e80 was not returned to mpool ucp_rkeys
+[1630108052.815782] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e0f40 was not returned to mpool ucp_rkeys
+[1630108052.815792] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e1000 was not returned to mpool ucp_rkeys
+[1630108052.815801] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e10c0 was not returned to mpool ucp_rkeys
+[1630108052.815811] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e1180 was not returned to mpool ucp_rkeys
+[1630108052.815820] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e1240 was not returned to mpool ucp_rkeys
+[1630108052.815829] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e1300 was not returned to mpool ucp_rkeys
+[1630108052.815839] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e13c0 was not returned to mpool ucp_rkeys
+[1630108052.815848] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e1480 was not returned to mpool ucp_rkeys
+[1630108052.815858] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e1540 was not returned to mpool ucp_rkeys
+[1630108052.815868] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e1600 was not returned to mpool ucp_rkeys
+[1630108052.815877] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e16c0 was not returned to mpool ucp_rkeys
+[1630108052.815887] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e1780 was not returned to mpool ucp_rkeys
+[1630108052.815897] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e1840 was not returned to mpool ucp_rkeys
+[1630108052.815906] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e1900 was not returned to mpool ucp_rkeys
+[1630108052.815916] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e19c0 was not returned to mpool ucp_rkeys
+[1630108052.815926] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e1a80 was not returned to mpool ucp_rkeys
+[1630108052.815935] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e1b40 was not returned to mpool ucp_rkeys
+[1630108052.815944] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e1c00 was not returned to mpool ucp_rkeys
+[1630108052.815954] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e1cc0 was not returned to mpool ucp_rkeys
+[1630108052.815963] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e1d80 was not returned to mpool ucp_rkeys
+[1630108052.815972] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e1e40 was not returned to mpool ucp_rkeys
+[1630108052.815982] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e1f00 was not returned to mpool ucp_rkeys
+[1630108052.815991] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e1fc0 was not returned to mpool ucp_rkeys
+[1630108052.816002] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e2080 was not returned to mpool ucp_rkeys
+[1630108052.816011] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e2140 was not returned to mpool ucp_rkeys
+[1630108052.816038] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e2200 was not returned to mpool ucp_rkeys
+[1630108052.816047] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e22c0 was not returned to mpool ucp_rkeys
+[1630108052.816057] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e2380 was not returned to mpool ucp_rkeys
+[1630108052.816067] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e2440 was not returned to mpool ucp_rkeys
+[1630108052.816077] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e2500 was not returned to mpool ucp_rkeys
+[1630108052.816087] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e25c0 was not returned to mpool ucp_rkeys
+[1630108052.816097] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e2680 was not returned to mpool ucp_rkeys
+[1630108052.816107] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e2740 was not returned to mpool ucp_rkeys
+[1630108052.816116] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e2800 was not returned to mpool ucp_rkeys
+[1630108052.816143] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e28c0 was not returned to mpool ucp_rkeys
+[1630108052.816154] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e2980 was not returned to mpool ucp_rkeys
+[1630108052.816175] [e13-43:2267 :0]          mpool.c:43   UCX  WARN  object 0x22e2a40 was not returned to mpool ucp_rkeys

@@ -1,0 +1,37 @@
+Running app=cc graph=un-sk n=4 m=2
+thread support level provided by MPI: MPI_THREAD_MULTIPLE
+load directed graph...|V| = 50636073, |E| = 3898825202
+|V'_0| = 14245888 |E^dense_0| = 936218668
+|V'_1| = 12034048 |E^dense_1| = 989159612
+|V'_3_0| = 12010793 |E^dense_3_0| = 990913376
+|V'_2_0| = 12345344 |E^dense_2_0| = 982533546
+|V'_1_0| = 12034048 |E^dense_1_0| = 989159612
+|V'_2| = 12345344 |E^dense_2| = 982533546
+|V'_3| = 12010793 |E^dense_3| = 990913376
+|V'_0_0| = 14245888 |E^dense_0_0| = 936218668
+machine(3) got 990913376 sparse mode edges
+machine(2) got 982533546 sparse mode edges
+machine(1) got 989159612 sparse mode edges
+machine(0) got 936218668 sparse mode edges
+part(2) E_0 has 982533546 sparse mode edges
+part(0) E_0 has 936218668 sparse mode edges
+part(1) E_0 has 989159612 sparse mode edges
+part(3) E_0 has 990913376 sparse mode edges
+
+===================================================================================
+=   BAD TERMINATION OF ONE OF YOUR APPLICATION PROCESSES
+=   PID 18658 RUNNING AT e13-45
+=   EXIT CODE: 9
+=   CLEANING UP REMAINING PROCESSES
+=   YOU CAN IGNORE THE BELOW CLEANUP MESSAGES
+===================================================================================
+[proxy:0:0@e13-43.hpc.usc.edu] HYD_pmcd_pmip_control_cmd_cb (pm/pmiserv/pmip_cb.c:878): assert (!closed) failed
+[proxy:0:0@e13-43.hpc.usc.edu] HYDT_dmxu_poll_wait_for_event (tools/demux/demux_poll.c:77): callback returned error status
+[proxy:0:0@e13-43.hpc.usc.edu] main (pm/pmiserv/pmip.c:200): demux engine error waiting for event
+[proxy:0:1@e13-44.hpc.usc.edu] HYD_pmcd_pmip_control_cmd_cb (pm/pmiserv/pmip_cb.c:878): assert (!closed) failed
+[proxy:0:1@e13-44.hpc.usc.edu] HYDT_dmxu_poll_wait_for_event (tools/demux/demux_poll.c:77): callback returned error status
+[proxy:0:1@e13-44.hpc.usc.edu] main (pm/pmiserv/pmip.c:200): demux engine error waiting for event
+[mpiexec@discovery2.hpc.usc.edu] HYDT_bscu_wait_for_completion (tools/bootstrap/utils/bscu_wait.c:75): one of the processes terminated badly; aborting
+[mpiexec@discovery2.hpc.usc.edu] HYDT_bsci_wait_for_completion (tools/bootstrap/src/bsci_wait.c:22): launcher returned error waiting for completion
+[mpiexec@discovery2.hpc.usc.edu] HYD_pmci_wait_for_completion (pm/pmiserv/pmiserv_pmci.c:215): launcher returned error waiting for completion
+[mpiexec@discovery2.hpc.usc.edu] main (ui/mpich/mpiexec.c:336): process manager error waiting for completion
