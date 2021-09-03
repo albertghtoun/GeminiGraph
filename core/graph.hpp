@@ -113,6 +113,7 @@ public:
 
   size_t edge_data_size;
   size_t unit_size;
+  size_t unit_size_offset;
   size_t edge_unit_size;
 
   bool symmetric;
@@ -159,15 +160,15 @@ public:
   MessageBuffer *** recv_buffer; // MessageBuffer* [partitions] [sockets]; numa-aware
 
   #if ENABLE_BITMAP_CACHE == 1
-  FM::bitmap_cache_item **** outgoing_adj_bitmap_cache; // outgoing bitmap cache.
+  unsigned long *** outgoing_adj_bitmap_cache; // outgoing bitmap cache.
   FM::bitmap_cache_pool_t* outgoing_adj_bitmap_cache_pool;
-  FM::bitmap_cache_item **** incoming_adj_bitmap_cache; // incoming bitmap cache.
+  unsigned long *** incoming_adj_bitmap_cache; // incoming bitmap cache.
   FM::bitmap_cache_pool_t* incoming_adj_bitmap_cache_pool;
   #endif
   #if ENABLE_INDEX_CACHE == 1
-  FM::index_cache_item **** outgoing_adj_index_cache;  // outgoing index cache.
+  EdgeId *** outgoing_adj_index_cache;  // outgoing index cache.
   FM::index_cache_pool_t* outgoing_adj_index_cache_pool;
-  FM::index_cache_item **** incoming_adj_index_cache; // incoming index cache.
+  EdgeId *** incoming_adj_index_cache; // incoming index cache.
   FM::index_cache_pool_t* incoming_adj_index_cache_pool;
   #endif
   #if ENABLE_EDGE_CACHE == 1
@@ -197,6 +198,24 @@ public:
         MPI_Win_free(incoming_adj_list_data_win[s_i][t_i]);
       }
     }
+
+    #if ENABLE_BITMAP_CACHE == 1
+    for (int i=0;i<partitions;i++) {
+      for (int s_i=0;s_i<sockets;s_i++) {
+        numa_free(outgoing_adj_bitmap_cache[i][s_i], sizeof(unsigned long) * (WORD_OFFSET(vertices) + 1) * sockets);
+        numa_free(incoming_adj_bitmap_cache[i][s_i], sizeof(unsigned long) * (WORD_OFFSET(vertices) + 1) * sockets);
+      }
+    }
+    #endif
+
+    #if ENABLE_INDEX_CACHE == 1
+    for (int i=0;i<partitions;i++) {
+      for (int s_i=0;s_i<sockets;s_i++) {
+        numa_free(outgoing_adj_index_cache[i][s_i], sizeof(EdgeId) * (vertices + 1) * sockets);
+        numa_free(incoming_adj_index_cache[i][s_i], sizeof(EdgeId) * (vertices + 1) * sockets);
+      }
+    }
+    #endif
   }
 
   inline int get_socket_id(int thread_id) {
@@ -210,6 +229,7 @@ public:
   void init() {
     edge_data_size = std::is_same<EdgeData, Empty>::value ? 0 : sizeof(EdgeData);
     unit_size = sizeof(VertexId) + edge_data_size;
+    unit_size_offset = std::is_same<EdgeData, Empty>::value ? 2 : 3;
     edge_unit_size = sizeof(VertexId) + unit_size;
 
     assert( numa_available() != -1 );
@@ -237,7 +257,7 @@ public:
     #pragma omp parallel for
     for (int t_i=0;t_i<threads;t_i++) {
       int s_i = get_socket_id(t_i);
-      assert(numa_run_on_node(s_i)==0);
+      // assert(numa_run_on_node(s_i)==0);
       #ifdef PRINT_DEBUG_MESSAGES
       // fprintf(stderr,"thread-%d bound to socket-%d\n", t_i, s_i);
       #endif
@@ -258,14 +278,14 @@ public:
     #if ENABLE_BITMAP_CACHE == 1
     outgoing_adj_bitmap_cache_pool = new FM::bitmap_cache_pool_t;
     incoming_adj_bitmap_cache_pool = new FM::bitmap_cache_pool_t;
-    outgoing_adj_bitmap_cache = new FM::bitmap_cache_item *** [partitions];
-    incoming_adj_bitmap_cache = new FM::bitmap_cache_item *** [partitions];
+    outgoing_adj_bitmap_cache = new unsigned long ** [partitions];
+    incoming_adj_bitmap_cache = new unsigned long ** [partitions];
     #endif
     #if ENABLE_INDEX_CACHE == 1
     outgoing_adj_index_cache_pool = new FM::index_cache_pool_t;
     incoming_adj_index_cache_pool = new FM::index_cache_pool_t;
-    outgoing_adj_index_cache = new FM::index_cache_item *** [partitions];
-    incoming_adj_index_cache = new FM::index_cache_item *** [partitions];
+    outgoing_adj_index_cache = new EdgeId ** [partitions];
+    incoming_adj_index_cache = new EdgeId ** [partitions];
     #endif
     #if ENABLE_EDGE_CACHE == 1
     outgoing_edge_cache_pool = new FM::edge_cache_pool_t<EdgeData>;
@@ -277,12 +297,12 @@ public:
       send_buffer[i] = new MessageBuffer * [sockets];
       recv_buffer[i] = new MessageBuffer * [sockets];
       #if ENABLE_BITMAP_CACHE == 1
-      outgoing_adj_bitmap_cache[i] = new FM::bitmap_cache_item ** [sockets];
-      incoming_adj_bitmap_cache[i] = new FM::bitmap_cache_item ** [sockets];
+      outgoing_adj_bitmap_cache[i] = new unsigned long * [sockets];
+      incoming_adj_bitmap_cache[i] = new unsigned long * [sockets];
       #endif
       #if ENABLE_INDEX_CACHE == 1
-      outgoing_adj_index_cache[i] = new FM::index_cache_item ** [sockets];
-      incoming_adj_index_cache[i] = new FM::index_cache_item ** [sockets];
+      outgoing_adj_index_cache[i] = new EdgeId * [sockets];
+      incoming_adj_index_cache[i] = new EdgeId * [sockets];
       #endif
       #if ENABLE_EDGE_CACHE == 1
       outgoing_edge_cache[i] = new FM::edge_cache_set<EdgeData> ** [sockets];
@@ -789,15 +809,31 @@ public:
       fprintf(stderr,"part(%d) E_%d has %lu symmetric edges\n", partition_id, s_i, outgoing_edges[s_i]);
       #endif
       outgoing_adj_list[s_i] = (AdjUnit<EdgeData>*)numa_alloc_onnode(unit_size * outgoing_edges[s_i], s_i);
+
       outgoing_adj_list_data_win[s_i] = new MPI_Win* [threads];
       for (int t_i=0; t_i<threads; t_i++) {
         outgoing_adj_list_data_win[s_i][t_i] = new MPI_Win;
         if (partition_id >= FM::n_compute_partitions) {
           MPI_Win_create(outgoing_adj_list[s_i], outgoing_edges[s_i]*unit_size, unit_size, MPI_INFO_NULL, MPI_COMM_WORLD, outgoing_adj_list_data_win[s_i][t_i]);
         } else {
-          MPI_Win_create(NULL, 0, 1, MPI_INFO_NULL, MPI_COMM_WORLD, outgoing_adj_list_data_win[s_i][t_i]);                
+         MPI_Win_create(NULL, 0, 1, MPI_INFO_NULL, MPI_COMM_WORLD, outgoing_adj_list_data_win[s_i][t_i]);
         }
       }
+      // unsigned segments = (outgoing_edges[s_i]*unit_size) >> 30;
+      // outgoing_adj_list_data_win[s_i] = new MPI_Win** [segments];
+      // unsigned seg_i = 0;
+      // unsigned long bytes_start = 0;
+      // for (; bytes_start < outgoing_edges[s_i]*unit_size; ++seg_i, bytes_start += (1UL<<30)) {
+      //   outgoing_adj_list_data_win[s_i][seg_i] = new MPI_Win* [threads];
+      //   for (int t_i=0; t_i<threads; t_i++) {
+      //     outgoing_adj_list_data_win[s_i][seg_i][t_i] = new MPI_Win;
+      //     if (partition_id >= FM::n_compute_partitions) {
+      //       int err = MPI_Win_create(outgoing_adj_list[s_i] + bytes_start, (bytes_start + (1UL<<30)) < outgoing_edges[s_i]*unit_size ? (1UL<<30) : outgoing_edges[s_i]*unit_size, unit_size, MPI_INFO_NULL, MPI_COMM_WORLD, outgoing_adj_list_data_win[s_i][seg_i][t_i]);
+      //     } else {
+      //       MPI_Win_create(NULL, 0, 1, MPI_INFO_NULL, MPI_COMM_WORLD, outgoing_adj_list_data_win[s_i][seg_i][t_i]);
+      //     }
+      //   }
+      // }
     }
     {
       std::thread recv_thread_dst([&](){
@@ -1225,6 +1261,9 @@ public:
     }
     compressed_outgoing_adj_vertices = new VertexId [sockets];
     compressed_outgoing_adj_index = new CompressedAdjIndexUnit * [sockets];
+    #ifdef PRINT_DEBUG_MESSAGES
+    fprintf(stderr,"%d: sockets = %d\n", partition_id, sockets);
+    #endif   
     for (int s_i=0;s_i<sockets;s_i++) {
       outgoing_edges[s_i] = 0;
       compressed_outgoing_adj_vertices[s_i] = 0;
@@ -1260,12 +1299,64 @@ public:
       for (int t_i=0; t_i<threads; t_i++) {
         outgoing_adj_list_data_win[s_i][t_i] = new MPI_Win;
         if (partition_id >= FM::n_compute_partitions) {
-          MPI_Win_create(outgoing_adj_list[s_i], outgoing_edges[s_i]*unit_size, unit_size, MPI_INFO_NULL, MPI_COMM_WORLD, outgoing_adj_list_data_win[s_i][t_i]);
+          unsigned long size = outgoing_edges[s_i]*unit_size;
+          MPI_Aint mpi_size = outgoing_edges[s_i]*unit_size;
+          // MPI_Get_address(&size, &mpi_size);
+          MPI_Win_create(outgoing_adj_list[s_i], mpi_size, unit_size, MPI_INFO_NULL, MPI_COMM_WORLD, outgoing_adj_list_data_win[s_i][t_i]);
         } else {
-          MPI_Win_create(NULL, 0, 1, MPI_INFO_NULL, MPI_COMM_WORLD, outgoing_adj_list_data_win[s_i][t_i]);                
+          MPI_Win_create(NULL, 0, 1, MPI_INFO_NULL, MPI_COMM_WORLD, outgoing_adj_list_data_win[s_i][t_i]);
         }
       }
+      // #ifdef PRINT_DEBUG_MESSAGES
+      // fprintf(stderr,"%d: CCC: %x\n", partition_id, outgoing_adj_list[s_i]);
+      // #endif
+      // // unsigned segments = (outgoing_edges[s_i]*unit_size) >> 30;
+      // unsigned segments = 10;
+      // outgoing_adj_list_data_win[s_i] = new MPI_Win** [segments];
+      // #ifdef PRINT_DEBUG_MESSAGES
+      // fprintf(stderr,"%d: DDD\n", partition_id);
+      // #endif
+
+      // unsigned seg_i = 0;
+      // unsigned long indices_start = 0;
+      // // for (; bytes_start < outgoing_edges[s_i]*unit_size; ++seg_i, bytes_start += (1UL<<30)) {
+      // for (; seg_i < 10; ++seg_i, indices_start += (1UL<<(33-unit_size_offset))) {
+      //   outgoing_adj_list_data_win[s_i][seg_i] = new MPI_Win* [threads];
+      //   for (int t_i=0; t_i<threads; t_i++) {
+      //     outgoing_adj_list_data_win[s_i][seg_i][t_i] = new MPI_Win;
+      //     if (partition_id >= FM::n_compute_partitions) {
+      //       unsigned long size = (indices_start + (1UL<<(33-unit_size_offset))) < outgoing_edges[s_i] ? 
+      //                                                          (1UL<<(33-unit_size_offset)) : outgoing_edges[s_i] - indices_start;
+      //       size *= unit_size;
+      //       if (size < 0)
+      //         size = 0UL;
+
+      //       #ifdef PRINT_DEBUG_MESSAGES
+      //       fprintf(stderr,"%d: EEEE, indices_start=%lu, outgoing_edges[s_i]=%lu, size=%lu\n", partition_id, indices_start, outgoing_edges[s_i], size); // 2353950444
+      //       #endif
+      //       MPI_Aint mpi_size;
+      //       MPI_Get_address(&size, &mpi_size);
+      //       int err = MPI_Win_create(&outgoing_adj_list[s_i][indices_start], mpi_size, unit_size, MPI_INFO_NULL, MPI_COMM_WORLD, outgoing_adj_list_data_win[s_i][seg_i][t_i]);
+      //       #ifdef PRINT_DEBUG_MESSAGES
+      //       fprintf(stderr,"%d: FFFF: tid=%d, err=%d\n", partition_id, t_i, err);
+      //       #endif
+      //     } else {
+      //       #ifdef PRINT_DEBUG_MESSAGES
+      //       fprintf(stderr,"%d: EEEE\n", partition_id);
+      //       #endif
+      //       MPI_Win_create(NULL, 0, 1, MPI_INFO_NULL, MPI_COMM_WORLD, outgoing_adj_list_data_win[s_i][seg_i][t_i]);                
+      //       #ifdef PRINT_DEBUG_MESSAGES
+      //       fprintf(stderr,"%d: FFFF: tid=%d\n", partition_id, t_i);
+      //       #endif
+      //     }
+      //   }
+      // }
     }
+
+    #ifdef PRINT_DEBUG_MESSAGES
+    fprintf(stderr,"%d: AAAAA\n", partition_id);
+    #endif
+
     {
       std::thread recv_thread_dst([&](){
         int finished_count = 0;
@@ -1344,6 +1435,10 @@ public:
       }
     }
     MPI_Barrier(MPI_COMM_WORLD);
+
+    #ifdef PRINT_DEBUG_MESSAGES
+    fprintf(stderr,"%d: preparing for dense mode graph data\n", partition_id);
+    #endif
 
     // preparing for dense mode graph data
     EdgeId recv_incoming_edges = 0;
@@ -1493,11 +1588,29 @@ public:
       for (int t_i=0; t_i<threads; t_i++) {
         incoming_adj_list_data_win[s_i][t_i] = new MPI_Win;
         if (partition_id >= FM::n_compute_partitions) {
-          MPI_Win_create(incoming_adj_list[s_i], incoming_edges[s_i]*unit_size, unit_size, MPI_INFO_NULL, MPI_COMM_WORLD, incoming_adj_list_data_win[s_i][t_i]);
+          unsigned long size = incoming_edges[s_i]*unit_size;
+          MPI_Aint mpi_size;
+          MPI_Get_address(&size, &mpi_size);
+          MPI_Win_create(incoming_adj_list[s_i], mpi_size, unit_size, MPI_INFO_NULL, MPI_COMM_WORLD, incoming_adj_list_data_win[s_i][t_i]);
         } else {
           MPI_Win_create(NULL, 0, 1, MPI_INFO_NULL, MPI_COMM_WORLD, incoming_adj_list_data_win[s_i][t_i]);
         }
       }
+      // unsigned segments = (incoming_edges[s_i]*unit_size) >> 30;
+      // incoming_adj_list_data_win[s_i] = new MPI_Win** [segments];
+      // unsigned seg_i = 0;
+      // unsigned long bytes_start = 0;
+      // for (; bytes_start < incoming_edges[s_i]*unit_size; ++seg_i, bytes_start += (1UL<<30)) {
+      //   incoming_adj_list_data_win[s_i][seg_i] = new MPI_Win* [threads];
+      //   for (int t_i=0; t_i<threads; t_i++) {
+      //     incoming_adj_list_data_win[s_i][seg_i][t_i] = new MPI_Win;
+      //     if (partition_id >= FM::n_compute_partitions) {
+      //       MPI_Win_create(incoming_adj_list[s_i] + bytes_start, (bytes_start + (1UL<<30)) < incoming_edges[s_i]*unit_size ? (1UL<<30) : incoming_edges[s_i]*unit_size, unit_size, MPI_INFO_NULL, MPI_COMM_WORLD, incoming_adj_list_data_win[s_i][seg_i][t_i]);
+      //     } else {
+      //       MPI_Win_create(NULL, 0, 1, MPI_INFO_NULL, MPI_COMM_WORLD, incoming_adj_list_data_win[s_i][seg_i][t_i]);
+      //     }
+      //   }
+      // }
     }
     {
       std::thread recv_thread_src([&](){
@@ -1578,41 +1691,78 @@ public:
     }
     MPI_Barrier(MPI_COMM_WORLD);
 
+    auto delegated_farmem_partitions = get_delegated_partitions(partition_id);
     // init optimization structures
     #if ENABLE_BITMAP_CACHE == 1
     for (int i=0;i<partitions;i++) {
       for (int s_i=0;s_i<sockets;s_i++) {
-        outgoing_adj_bitmap_cache[i][s_i] = (FM::bitmap_cache_item**)numa_alloc_onnode(sizeof(FM::bitmap_cache_item*) * vertices * sockets, s_i);
-        memset(outgoing_adj_bitmap_cache[i][s_i], 0, sizeof(FM::bitmap_cache_item*) * vertices * sockets);
+        outgoing_adj_bitmap_cache[i][s_i] = (unsigned long*)numa_alloc_onnode(sizeof(unsigned long) * (WORD_OFFSET(vertices) + 1) * sockets, s_i);
+        memset(outgoing_adj_bitmap_cache[i][s_i], 0, sizeof(unsigned long) * (WORD_OFFSET(vertices) + 1) * sockets);
       }
     }
-    outgoing_adj_bitmap_cache_pool->cache_pool = (FM::bitmap_cache_item*)malloc(sizeof(FM::bitmap_cache_item) * vertices);
+    // outgoing_adj_bitmap_cache_pool->cache_pool = (FM::bitmap_cache_item*)malloc(sizeof(FM::bitmap_cache_item) * vertices);
 
     for (int i=0;i<partitions;i++) {
       for (int s_i=0;s_i<sockets;s_i++) {
-        incoming_adj_bitmap_cache[i][s_i] = (FM::bitmap_cache_item**)numa_alloc_onnode(sizeof(FM::bitmap_cache_item*) * vertices * sockets, s_i);
-        memset(incoming_adj_bitmap_cache[i][s_i], 0, sizeof(FM::bitmap_cache_item*) * vertices * sockets);
+        incoming_adj_bitmap_cache[i][s_i] = (unsigned long*)numa_alloc_onnode(sizeof(unsigned long) * (WORD_OFFSET(vertices) + 1) * sockets, s_i);
+        memset(incoming_adj_bitmap_cache[i][s_i], 0, sizeof(unsigned long) * (WORD_OFFSET(vertices) + 1) * sockets);
       }
     }
-    incoming_adj_bitmap_cache_pool->cache_pool = (FM::bitmap_cache_item*)malloc(sizeof(FM::bitmap_cache_item) * vertices);
+    // incoming_adj_bitmap_cache_pool->cache_pool = (FM::bitmap_cache_item*)malloc(sizeof(FM::bitmap_cache_item) * vertices);
+
+    // prepare the bitmap cache
+    for (auto fp : delegated_farmem_partitions) {
+      auto remote_node = fp;
+      for (int s_i=0;s_i<sockets;s_i++) {
+        MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_bitmap_data_win[s_i][0]);
+        MPI_Get(outgoing_adj_bitmap_cache[remote_node][s_i], (WORD_OFFSET(vertices) + 1), MPI_UNSIGNED_LONG, remote_node, 0, (WORD_OFFSET(vertices) + 1), MPI_UNSIGNED_LONG, *outgoing_adj_bitmap_data_win[s_i][0]);
+        MPI_Win_unlock(remote_node, *outgoing_adj_bitmap_data_win[s_i][0]);
+      }
+    }
+    for (auto fp : delegated_farmem_partitions) {
+      auto remote_node = fp;
+      for (int s_i=0;s_i<sockets;s_i++) {
+        MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *incoming_adj_bitmap_data_win[s_i][0]);
+        MPI_Get(incoming_adj_bitmap_cache[remote_node][s_i], (WORD_OFFSET(vertices) + 1), MPI_UNSIGNED_LONG, remote_node, 0, (WORD_OFFSET(vertices) + 1), MPI_UNSIGNED_LONG, *incoming_adj_bitmap_data_win[s_i][0]);
+        MPI_Win_unlock(remote_node, *incoming_adj_bitmap_data_win[s_i][0]);
+      }
+    }
     #endif
 
     #if ENABLE_INDEX_CACHE == 1
     for (int i=0;i<partitions;i++) {
       for (int s_i=0;s_i<sockets;s_i++) {
-        outgoing_adj_index_cache[i][s_i] = (FM::index_cache_item**)numa_alloc_onnode(sizeof(FM::index_cache_item*) * vertices * sockets, s_i);
-        memset(outgoing_adj_index_cache[i][s_i], 0, sizeof(FM::index_cache_item*) * vertices * sockets);
+        outgoing_adj_index_cache[i][s_i] = (EdgeId*)numa_alloc_onnode(sizeof(EdgeId) * (vertices + 1) * sockets, s_i);
+        memset(outgoing_adj_index_cache[i][s_i], 0, sizeof(EdgeId) * (vertices + 1) * sockets);
       }
     }
-    outgoing_adj_index_cache_pool->cache_pool = (FM::index_cache_item*)malloc(sizeof(FM::index_cache_item) * vertices);
+    // outgoing_adj_index_cache_pool->cache_pool = (FM::index_cache_item*)malloc(sizeof(FM::index_cache_item) * vertices);
 
     for (int i=0;i<partitions;i++) {
       for (int s_i=0;s_i<sockets;s_i++) {
-        incoming_adj_index_cache[i][s_i] = (FM::index_cache_item**)numa_alloc_onnode(sizeof(FM::index_cache_item*) * vertices * sockets, s_i);
-        memset(incoming_adj_index_cache[i][s_i], 0, sizeof(FM::index_cache_item*) * vertices * sockets);
+        incoming_adj_index_cache[i][s_i] = (EdgeId*)numa_alloc_onnode(sizeof(EdgeId) * (vertices + 1) * sockets, s_i);
+        memset(incoming_adj_index_cache[i][s_i], 0, sizeof(EdgeId) * (vertices + 1) * sockets);
       }
     }
-    incoming_adj_index_cache_pool->cache_pool = (FM::index_cache_item*)malloc(sizeof(FM::index_cache_item) * vertices);
+    // incoming_adj_index_cache_pool->cache_pool = (FM::index_cache_item*)malloc(sizeof(FM::index_cache_item) * vertices);
+
+    // prepare the index cache
+    for (auto fp : delegated_farmem_partitions) {
+      auto remote_node = fp;
+      for (int s_i=0;s_i<sockets;s_i++) {
+          MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_index_data_win[s_i][0]);
+          MPI_Get(outgoing_adj_index_cache[remote_node][s_i], vertices+1, MPI_UNSIGNED_LONG, remote_node, 0, vertices+1, MPI_UNSIGNED_LONG, *outgoing_adj_index_data_win[s_i][0]);
+          MPI_Win_unlock(remote_node, *outgoing_adj_index_data_win[s_i][0]);
+      }
+    }
+    for (auto fp : delegated_farmem_partitions) {
+      auto remote_node = fp;
+      for (int s_i=0;s_i<sockets;s_i++) {
+          MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *incoming_adj_index_data_win[s_i][0]);
+          MPI_Get(incoming_adj_index_cache[remote_node][s_i], vertices+1, MPI_UNSIGNED_LONG, remote_node, 0, vertices+1, MPI_UNSIGNED_LONG, *incoming_adj_index_data_win[s_i][0]);
+          MPI_Win_unlock(remote_node, *incoming_adj_index_data_win[s_i][0]);
+      }
+    }
     #endif
 
     #if ENABLE_EDGE_CACHE == 1
@@ -2378,19 +2528,20 @@ public:
                   uint remote_node = fp;
                   unsigned long word;
                   #if ENABLE_BITMAP_CACHE == 1
-                    auto cached_item_ptr = outgoing_adj_bitmap_cache[remote_node][s_i][v_i];
-                    if (cached_item_ptr != NULL) {
-                      word = cached_item_ptr->word;
-                      (*FM::outgoing_adj_bitmap_cache_hit)++;
-                    } else {
-                      MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_bitmap_data_win[s_i][thread_id]);
-                      MPI_Get(&word, 1, MPI_UNSIGNED_LONG, remote_node, WORD_OFFSET(v_i), 1, MPI_UNSIGNED_LONG, *outgoing_adj_bitmap_data_win[s_i][thread_id]);
-                      MPI_Win_unlock(remote_node, *outgoing_adj_bitmap_data_win[s_i][thread_id]);
-                      uint64_t cache_index = __sync_fetch_and_add(&outgoing_adj_bitmap_cache_pool->cache_pool_count, 1);
-                      outgoing_adj_bitmap_cache_pool->cache_pool[cache_index] = FM::bitmap_cache_item(word);
-                      outgoing_adj_bitmap_cache[remote_node][s_i][v_i] = &outgoing_adj_bitmap_cache_pool->cache_pool[cache_index];
-                      (*FM::outgoing_adj_bitmap_cache_miss)++;
-                    }
+                    word = outgoing_adj_bitmap_cache[remote_node][s_i][WORD_OFFSET(v_i)];
+                    (*FM::outgoing_adj_bitmap_cache_hit)++;
+                    // if (cached_item_ptr != NULL) {
+                    //   word = cached_item_ptr->word;
+                    //   (*FM::outgoing_adj_bitmap_cache_hit)++;
+                    // } else {
+                    //   MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_bitmap_data_win[s_i][thread_id]);
+                    //   MPI_Get(&word, 1, MPI_UNSIGNED_LONG, remote_node, WORD_OFFSET(v_i), 1, MPI_UNSIGNED_LONG, *outgoing_adj_bitmap_data_win[s_i][thread_id]);
+                    //   MPI_Win_unlock(remote_node, *outgoing_adj_bitmap_data_win[s_i][thread_id]);
+                    //   uint64_t cache_index = __sync_fetch_and_add(&outgoing_adj_bitmap_cache_pool->cache_pool_count, 1);
+                    //   outgoing_adj_bitmap_cache_pool->cache_pool[cache_index] = FM::bitmap_cache_item(word);
+                    //   outgoing_adj_bitmap_cache[remote_node][s_i][v_i] = &outgoing_adj_bitmap_cache_pool->cache_pool[cache_index];
+                    //   (*FM::outgoing_adj_bitmap_cache_miss)++;
+                    // }
                   #else
                   MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_bitmap_data_win[s_i][thread_id]);
                   MPI_Get(&word, 1, MPI_UNSIGNED_LONG, remote_node, WORD_OFFSET(v_i), 1, MPI_UNSIGNED_LONG, *outgoing_adj_bitmap_data_win[s_i][thread_id]);
@@ -2400,20 +2551,22 @@ public:
                     // retrieve index and index+1
                     EdgeId indices[2];
                     #if ENABLE_INDEX_CACHE == 1
-                    auto cached_item_ptr = outgoing_adj_index_cache[remote_node][s_i][v_i];
-                    if (cached_item_ptr != NULL) {
-                      indices[0] = cached_item_ptr->first;
-                      indices[1] = cached_item_ptr->second;
-                      (*FM::outgoing_adj_index_cache_hit)++;
-                    } else {
-                      MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_index_data_win[s_i][thread_id]);
-                      MPI_Get(&indices, 2, MPI_UNSIGNED_LONG, remote_node, v_i, 2, MPI_UNSIGNED_LONG, *outgoing_adj_index_data_win[s_i][thread_id]);
-                      MPI_Win_unlock(remote_node, *outgoing_adj_index_data_win[s_i][thread_id]);
-                      uint64_t cache_index = __sync_fetch_and_add(&outgoing_adj_index_cache_pool->cache_pool_count, 1);
-                      outgoing_adj_index_cache_pool->cache_pool[cache_index] = FM::index_cache_item(indices[0], indices[1]);
-                      outgoing_adj_index_cache[remote_node][s_i][v_i] = &outgoing_adj_index_cache_pool->cache_pool[cache_index];
-                      (*FM::outgoing_adj_index_cache_miss)++;
-                    }
+                    indices[0] = outgoing_adj_index_cache[remote_node][s_i][v_i];
+                    indices[1] = outgoing_adj_index_cache[remote_node][s_i][v_i+1];
+                    (*FM::outgoing_adj_index_cache_hit)++;
+                    // if (cached_item_ptr != NULL) {
+                    //   indices[0] = cached_item_ptr->first;
+                    //   indices[1] = cached_item_ptr->second;
+                    //   (*FM::outgoing_adj_index_cache_hit)++;
+                    // } else {
+                    //   MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_index_data_win[s_i][thread_id]);
+                    //   MPI_Get(&indices, 2, MPI_UNSIGNED_LONG, remote_node, v_i, 2, MPI_UNSIGNED_LONG, *outgoing_adj_index_data_win[s_i][thread_id]);
+                    //   MPI_Win_unlock(remote_node, *outgoing_adj_index_data_win[s_i][thread_id]);
+                    //   uint64_t cache_index = __sync_fetch_and_add(&outgoing_adj_index_cache_pool->cache_pool_count, 1);
+                    //   outgoing_adj_index_cache_pool->cache_pool[cache_index] = FM::index_cache_item(indices[0], indices[1]);
+                    //   outgoing_adj_index_cache[remote_node][s_i][v_i] = &outgoing_adj_index_cache_pool->cache_pool[cache_index];
+                    //   (*FM::outgoing_adj_index_cache_miss)++;
+                    // }
                     #else
                     MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_index_data_win[s_i][thread_id]);
                     MPI_Get(&indices, 2, MPI_UNSIGNED_LONG, remote_node, v_i, 2, MPI_UNSIGNED_LONG, *outgoing_adj_index_data_win[s_i][thread_id]);
@@ -2544,9 +2697,32 @@ public:
                     }
                     #else
                     MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_list_data_win[s_i][thread_id]);
-                    MPI_Get(&locally_cached_adj[0], n_adj_edges*unit_size, MPI_CHAR, 
+                    MPI_Get(&locally_cached_adj[0], n_adj_edges*unit_size, MPI_CHAR,
                             remote_node, indices[0], n_adj_edges*unit_size, MPI_CHAR, *outgoing_adj_list_data_win[s_i][thread_id]);
                     MPI_Win_unlock(remote_node, *outgoing_adj_list_data_win[s_i][thread_id]);
+                    // unsigned seg1 = indices[0] >> (30-unit_size_offset);
+                    // unsigned seg2 = (indices[0] + n_adj_edges) >> (30-unit_size_offset);
+                    // unsigned long seg_mask = (1U<<(30-unit_size_offset)) - 1;
+                    // unsigned long output_idx = 0UL;
+                    // for (unsigned seg = seg1; seg <= seg2; ++seg) {
+                    //   unsigned long start_idx = indices[0];
+                    //   if (seg > seg1)
+                    //     start_idx = 0UL;
+                    //   unsigned long n_elements = 1UL<<(30-unit_size_offset);
+                    //   if (seg1 == seg2)
+                    //     n_elements = n_adj_edges;
+                    //   else {
+                    //     if (seg == seg1)
+                    //       n_elements = (1UL<<(30-unit_size_offset)) - (indices[0] & seg_mask);
+                    //     if (seg == seg2)
+                    //       n_elements = (indices[0] + n_adj_edges) & seg_mask;
+                    //   }
+                    //   MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_list_data_win[s_i][seg][thread_id]);
+                    //   MPI_Get(&locally_cached_adj[output_idx], n_elements*unit_size, MPI_CHAR, 
+                    //           remote_node, start_idx, n_elements*unit_size, MPI_CHAR, *outgoing_adj_list_data_win[s_i][seg][thread_id]);
+                    //   MPI_Win_unlock(remote_node, *outgoing_adj_list_data_win[s_i][seg][thread_id]);
+                    //   output_idx += n_elements;
+                    // }
                     #endif
                     // printf("remote sparse_slot %d\n", v_i);
                     local_reducer += sparse_slot(v_i, msg_data, VertexAdjList<EdgeData>(&locally_cached_adj[0], &locally_cached_adj[n_adj_edges]));
@@ -2572,19 +2748,20 @@ public:
                     uint remote_node = fp;
                     unsigned long word;
                     #if ENABLE_BITMAP_CACHE == 1
-                    auto cached_item_ptr = outgoing_adj_bitmap_cache[remote_node][s_i][v_i];
-                    if (cached_item_ptr != NULL) {
-                      word = cached_item_ptr->word;
-                      (*FM::outgoing_adj_bitmap_cache_hit)++;
-                    } else {
-                      MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_bitmap_data_win[s_i][thread_id]);
-                      MPI_Get(&word, 1, MPI_UNSIGNED_LONG, remote_node, WORD_OFFSET(v_i), 1, MPI_UNSIGNED_LONG, *outgoing_adj_bitmap_data_win[s_i][thread_id]);
-                      MPI_Win_unlock(remote_node, *outgoing_adj_bitmap_data_win[s_i][thread_id]);
-                      uint64_t cache_index = __sync_fetch_and_add(&outgoing_adj_bitmap_cache_pool->cache_pool_count, 1);
-                      outgoing_adj_bitmap_cache_pool->cache_pool[cache_index] = FM::bitmap_cache_item(word);
-                      outgoing_adj_bitmap_cache[remote_node][s_i][v_i] = &outgoing_adj_bitmap_cache_pool->cache_pool[cache_index];
-                      (*FM::outgoing_adj_bitmap_cache_miss)++;
-                    }
+                    word = outgoing_adj_bitmap_cache[remote_node][s_i][WORD_OFFSET(v_i)];
+                    (*FM::outgoing_adj_bitmap_cache_hit)++;
+                    // if (cached_item_ptr != NULL) {
+                    //   word = cached_item_ptr->word;
+                    //   (*FM::outgoing_adj_bitmap_cache_hit)++;
+                    // } else {
+                    //   MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_bitmap_data_win[s_i][thread_id]);
+                    //   MPI_Get(&word, 1, MPI_UNSIGNED_LONG, remote_node, WORD_OFFSET(v_i), 1, MPI_UNSIGNED_LONG, *outgoing_adj_bitmap_data_win[s_i][thread_id]);
+                    //   MPI_Win_unlock(remote_node, *outgoing_adj_bitmap_data_win[s_i][thread_id]);
+                    //   uint64_t cache_index = __sync_fetch_and_add(&outgoing_adj_bitmap_cache_pool->cache_pool_count, 1);
+                    //   outgoing_adj_bitmap_cache_pool->cache_pool[cache_index] = FM::bitmap_cache_item(word);
+                    //   outgoing_adj_bitmap_cache[remote_node][s_i][v_i] = &outgoing_adj_bitmap_cache_pool->cache_pool[cache_index];
+                    //   (*FM::outgoing_adj_bitmap_cache_miss)++;
+                    // }
                     #else
                     MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_bitmap_data_win[s_i][thread_id]);
                     MPI_Get(&word, 1, MPI_UNSIGNED_LONG, remote_node, WORD_OFFSET(v_i), 1, MPI_UNSIGNED_LONG, *outgoing_adj_bitmap_data_win[s_i][thread_id]);
@@ -2594,20 +2771,22 @@ public:
                       // retrieve index and index+1
                       EdgeId indices[2];
                       #if ENABLE_INDEX_CACHE == 1
-                      auto cached_item_ptr = outgoing_adj_index_cache[remote_node][s_i][v_i];
-                      if (cached_item_ptr != NULL) {
-                        indices[0] = cached_item_ptr->first;
-                        indices[1] = cached_item_ptr->second;
-                        (*FM::outgoing_adj_index_cache_hit)++;
-                      } else {
-                        MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_index_data_win[s_i][thread_id]);
-                        MPI_Get(&indices, 2, MPI_UNSIGNED_LONG, remote_node, v_i, 2, MPI_UNSIGNED_LONG, *outgoing_adj_index_data_win[s_i][thread_id]);
-                        MPI_Win_unlock(remote_node, *outgoing_adj_index_data_win[s_i][thread_id]);
-                        uint64_t cache_index = __sync_fetch_and_add(&outgoing_adj_index_cache_pool->cache_pool_count, 1);
-                        outgoing_adj_index_cache_pool->cache_pool[cache_index] = FM::index_cache_item(indices[0], indices[1]);
-                        outgoing_adj_index_cache[remote_node][s_i][v_i] = &outgoing_adj_index_cache_pool->cache_pool[cache_index];
-                        (*FM::outgoing_adj_index_cache_miss)++;
-                      }
+                      indices[0] = outgoing_adj_index_cache[remote_node][s_i][v_i];
+                      indices[1] = outgoing_adj_index_cache[remote_node][s_i][v_i+1];
+                      (*FM::outgoing_adj_index_cache_hit)++;
+                      // if (cached_item_ptr != NULL) {
+                      //   indices[0] = cached_item_ptr->first;
+                      //   indices[1] = cached_item_ptr->second;
+                      //   (*FM::outgoing_adj_index_cache_hit)++;
+                      // } else {
+                      //   MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_index_data_win[s_i][thread_id]);
+                      //   MPI_Get(&indices, 2, MPI_UNSIGNED_LONG, remote_node, v_i, 2, MPI_UNSIGNED_LONG, *outgoing_adj_index_data_win[s_i][thread_id]);
+                      //   MPI_Win_unlock(remote_node, *outgoing_adj_index_data_win[s_i][thread_id]);
+                      //   uint64_t cache_index = __sync_fetch_and_add(&outgoing_adj_index_cache_pool->cache_pool_count, 1);
+                      //   outgoing_adj_index_cache_pool->cache_pool[cache_index] = FM::index_cache_item(indices[0], indices[1]);
+                      //   outgoing_adj_index_cache[remote_node][s_i][v_i] = &outgoing_adj_index_cache_pool->cache_pool[cache_index];
+                      //   (*FM::outgoing_adj_index_cache_miss)++;
+                      // }
                       #else
                       MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_index_data_win[s_i][thread_id]);
                       MPI_Get(&indices, 2, MPI_UNSIGNED_LONG, remote_node, v_i, 2, MPI_UNSIGNED_LONG, *outgoing_adj_index_data_win[s_i][thread_id]);
@@ -2738,9 +2917,32 @@ public:
                       }
                       #else
                       MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_list_data_win[s_i][thread_id]);
-                      MPI_Get(&locally_cached_adj[0], n_adj_edges*unit_size, MPI_CHAR, 
+                      MPI_Get(&locally_cached_adj[0], n_adj_edges*unit_size, MPI_CHAR,
                               remote_node, indices[0], n_adj_edges*unit_size, MPI_CHAR, *outgoing_adj_list_data_win[s_i][thread_id]);
                       MPI_Win_unlock(remote_node, *outgoing_adj_list_data_win[s_i][thread_id]);
+                      // unsigned seg1 = indices[0] >> (30-unit_size_offset);
+                      // unsigned seg2 = (indices[0] + n_adj_edges) >> (30-unit_size_offset);
+                      // unsigned long seg_mask = (1U<<(30-unit_size_offset)) - 1;
+                      // unsigned long output_idx = 0UL;
+                      // for (unsigned seg = seg1; seg <= seg2; ++seg) {
+                      //   unsigned long start_idx = indices[0];
+                      //   if (seg > seg1)
+                      //     start_idx = 0UL;
+                      //   unsigned long n_elements = 1UL<<(30-unit_size_offset);
+                      //   if (seg1 == seg2)
+                      //     n_elements = n_adj_edges;
+                      //   else {
+                      //     if (seg == seg1)
+                      //       n_elements = (1UL<<(30-unit_size_offset)) - (indices[0] & seg_mask);
+                      //     if (seg == seg2)
+                      //       n_elements = (indices[0] + n_adj_edges) & seg_mask;
+                      //   }
+                      //   MPI_Win_lock(MPI_LOCK_SHARED, remote_node, 0, *outgoing_adj_list_data_win[s_i][seg][thread_id]);
+                      //   MPI_Get(&locally_cached_adj[output_idx], n_elements*unit_size, MPI_CHAR, 
+                      //           remote_node, start_idx, n_elements*unit_size, MPI_CHAR, *outgoing_adj_list_data_win[s_i][seg][thread_id]);
+                      //   MPI_Win_unlock(remote_node, *outgoing_adj_list_data_win[s_i][seg][thread_id]);
+                      //   output_idx += n_elements;
+                      // }
                       #endif
                       // printf("remote sparse_slot %d\n", v_i);
                       local_reducer += sparse_slot(v_i, msg_data, VertexAdjList<EdgeData>(&locally_cached_adj[0], &locally_cached_adj[n_adj_edges]));
