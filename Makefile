@@ -2,9 +2,9 @@ ROOT_DIR= $(shell pwd)
 TARGETS= toolkits/bc toolkits/bfs toolkits/cc toolkits/pagerank toolkits/sssp
  MACROS=
 MACROS= -D PRINT_DEBUG_MESSAGES
-MACROS += -D ENABLE_BITMAP_CACHE=0
-MACROS += -D ENABLE_INDEX_CACHE=0
-MACROS += -D ENABLE_EDGE_CACHE=0
+MACROS += -D ENABLE_BITMAP_CACHE=1
+MACROS += -D ENABLE_INDEX_CACHE=1
+MACROS += -D ENABLE_EDGE_CACHE=1
 
 MPICXX= mpicxx
 NUMACTL_INC=/spack/apps/linux-centos7-x86_64/gcc-8.3.0/numactl-2.0.12-d565btygk3s5kc7stvldnc6pvglwpplh/include/
