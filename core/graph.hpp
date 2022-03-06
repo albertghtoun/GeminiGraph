@@ -31,6 +31,7 @@ Copyright (c) 2015-2016 Xiaowei Zhu, Tsinghua University
 #include <vector>
 #include <thread>
 #include <mutex>
+#include <functional>
 
 #include "core/atomic.hpp"
 #include "core/bitmap.hpp"
@@ -134,14 +135,14 @@ public:
   AdjUnit<EdgeData> ** incoming_adj_list; // AdjUnit<EdgeData> [sockets] [vertices+1]; numa-aware
   MPI_Win*** incoming_adj_bitmap_data_win;
   MPI_Win*** incoming_adj_index_data_win;
-  MPI_Win*** incoming_adj_list_data_win;
+  MPI_Win** incoming_adj_list_data_win;
 
   Bitmap ** outgoing_adj_bitmap;
   EdgeId ** outgoing_adj_index; // EdgeId [sockets] [vertices+1]; numa-aware
   AdjUnit<EdgeData> ** outgoing_adj_list; // AdjUnit<EdgeData> [sockets] [vertices+1]; numa-aware
   MPI_Win*** outgoing_adj_bitmap_data_win; 
   MPI_Win*** outgoing_adj_index_data_win;
-  MPI_Win*** outgoing_adj_list_data_win;
+  MPI_Win** outgoing_adj_list_data_win;
 
   VertexId * compressed_incoming_adj_vertices;
   CompressedAdjIndexUnit ** compressed_incoming_adj_index; // CompressedAdjIndexUnit [sockets] [...+1]; numa-aware
@@ -180,7 +181,7 @@ public:
 
   Graph() {
     threads = numa_num_configured_cpus();
-    // threads = 1;
+    // threads = 6; // speedup as threads count go from 1 to 6, then sharply goes down.
     #if ENABLE_EDGE_CACHE == 1
     assert(threads <= FM::edge_cache_set<EdgeData>::MAX_THREADS_SUPPORTED);
     #endif
@@ -194,23 +195,26 @@ public:
   ~Graph() {
     MPI_Barrier(MPI_COMM_WORLD);
     for (int s_i = 0; s_i < sockets; s_i++) {
+        if (partition_id < FM::n_compute_partitions) {
+          for (int n_i = FM::n_compute_partitions; n_i < partitions; ++n_i) {
+            MPI_Win_unlock(n_i, *outgoing_adj_list_data_win[s_i]);
+          }
+        }
+        MPI_Win_free(outgoing_adj_list_data_win[s_i]);
+
+        if (partition_id < FM::n_compute_partitions) {
+          for (int n_i = FM::n_compute_partitions; n_i < partitions; ++n_i) {
+            MPI_Win_unlock(n_i, *incoming_adj_list_data_win[s_i]);
+          }
+        }
+        MPI_Win_free(incoming_adj_list_data_win[s_i]);
+
       for (int t_i = 0; t_i < threads; t_i++) {
         MPI_Win_free(outgoing_adj_bitmap_data_win[s_i][t_i]);
         MPI_Win_free(outgoing_adj_index_data_win[s_i][t_i]);
-        if (partition_id < FM::n_compute_partitions) {
-          for (int n_i = FM::n_compute_partitions; n_i < partitions; ++n_i) {
-            MPI_Win_unlock(n_i, *outgoing_adj_list_data_win[s_i][t_i]);
-          }
-        }
-        MPI_Win_free(outgoing_adj_list_data_win[s_i][t_i]);
+
         MPI_Win_free(incoming_adj_bitmap_data_win[s_i][t_i]);
         MPI_Win_free(incoming_adj_index_data_win[s_i][t_i]);
-        if (partition_id < FM::n_compute_partitions) {
-          for (int n_i = FM::n_compute_partitions; n_i < partitions; ++n_i) {
-            MPI_Win_unlock(n_i, *incoming_adj_list_data_win[s_i][t_i]);
-          }
-        }
-        MPI_Win_free(incoming_adj_list_data_win[s_i][t_i]);
       }
     }
 
@@ -671,7 +675,7 @@ public:
     outgoing_adj_bitmap = new Bitmap * [sockets];
     outgoing_adj_index_data_win = new MPI_Win** [sockets];
     outgoing_adj_bitmap_data_win = new MPI_Win** [sockets];
-    outgoing_adj_list_data_win = new MPI_Win** [sockets];
+    outgoing_adj_list_data_win = new MPI_Win* [sockets];
 
     for (int s_i=0;s_i<sockets;s_i++) {
       outgoing_adj_bitmap[s_i] = new Bitmap (vertices);
@@ -825,16 +829,13 @@ public:
       #endif
       outgoing_adj_list[s_i] = (AdjUnit<EdgeData>*)numa_alloc_onnode(unit_size * outgoing_edges[s_i], s_i);
 
-      outgoing_adj_list_data_win[s_i] = new MPI_Win* [threads];
-      for (int t_i=0; t_i<threads; t_i++) {
-        outgoing_adj_list_data_win[s_i][t_i] = new MPI_Win;
-        if (partition_id >= FM::n_compute_partitions) {
-          MPI_Win_create(outgoing_adj_list[s_i], outgoing_edges[s_i]*unit_size, unit_size, MPI_INFO_NULL, MPI_COMM_WORLD, outgoing_adj_list_data_win[s_i][t_i]);
-        } else {
-          MPI_Win_create(NULL, 0, 1, MPI_INFO_NULL, MPI_COMM_WORLD, outgoing_adj_list_data_win[s_i][t_i]);
-          for (int n_i = FM::n_compute_partitions; n_i < partitions; ++ n_i) {
-            MPI_Win_lock(MPI_LOCK_SHARED, n_i, 0, *outgoing_adj_list_data_win[s_i][t_i]);
-          }
+      outgoing_adj_list_data_win[s_i] = new MPI_Win;
+      if (partition_id >= FM::n_compute_partitions) {
+        MPI_Win_create(outgoing_adj_list[s_i], outgoing_edges[s_i]*unit_size, unit_size, MPI_INFO_NULL, MPI_COMM_WORLD, outgoing_adj_list_data_win[s_i]);
+      } else {
+        MPI_Win_create(NULL, 0, 1, MPI_INFO_NULL, MPI_COMM_WORLD, outgoing_adj_list_data_win[s_i]);
+        for (int n_i = FM::n_compute_partitions; n_i < partitions; ++ n_i) {
+          MPI_Win_lock(MPI_LOCK_SHARED, n_i, 0, *outgoing_adj_list_data_win[s_i]);
         }
       }
       // unsigned segments = (outgoing_edges[s_i]*unit_size) >> 30;
@@ -1173,7 +1174,7 @@ public:
     outgoing_adj_bitmap = new Bitmap * [sockets];
     outgoing_adj_index_data_win = new MPI_Win** [sockets];
     outgoing_adj_bitmap_data_win = new MPI_Win** [sockets];
-    outgoing_adj_list_data_win = new MPI_Win** [sockets];
+    outgoing_adj_list_data_win = new MPI_Win* [sockets];
 
     for (int s_i=0;s_i<sockets;s_i++) {
       outgoing_adj_bitmap[s_i] = new Bitmap (vertices);
@@ -1313,21 +1314,19 @@ public:
       fprintf(stderr,"part(%d) E_%d has %lu sparse mode edges\n", partition_id, s_i, outgoing_edges[s_i]);
       #endif
       outgoing_adj_list[s_i] = (AdjUnit<EdgeData>*)numa_alloc_onnode(unit_size * outgoing_edges[s_i], s_i);
-      outgoing_adj_list_data_win[s_i] = new MPI_Win* [threads];
-      for (int t_i=0; t_i<threads; t_i++) {
-        outgoing_adj_list_data_win[s_i][t_i] = new MPI_Win;
-        if (partition_id >= FM::n_compute_partitions) {
-          unsigned long size = outgoing_edges[s_i]*unit_size;
-          MPI_Aint mpi_size = outgoing_edges[s_i]*unit_size;
-          // MPI_Get_address(&size, &mpi_size);
-          MPI_Win_create(outgoing_adj_list[s_i], mpi_size, unit_size, MPI_INFO_NULL, MPI_COMM_WORLD, outgoing_adj_list_data_win[s_i][t_i]);
-        } else {
-          MPI_Win_create(NULL, 0, 1, MPI_INFO_NULL, MPI_COMM_WORLD, outgoing_adj_list_data_win[s_i][t_i]);
-          for (int n_i = FM::n_compute_partitions; n_i < partitions; ++ n_i) {
-            MPI_Win_lock(MPI_LOCK_SHARED, n_i, 0, *outgoing_adj_list_data_win[s_i][t_i]);
-          }
+      outgoing_adj_list_data_win[s_i] = new MPI_Win;
+      if (partition_id >= FM::n_compute_partitions) {
+        unsigned long size = outgoing_edges[s_i]*unit_size;
+        MPI_Aint mpi_size = outgoing_edges[s_i]*unit_size;
+        // MPI_Get_address(&size, &mpi_size);
+        MPI_Win_create(outgoing_adj_list[s_i], mpi_size, unit_size, MPI_INFO_NULL, MPI_COMM_WORLD, outgoing_adj_list_data_win[s_i]);
+      } else {
+        MPI_Win_create(NULL, 0, 1, MPI_INFO_NULL, MPI_COMM_WORLD, outgoing_adj_list_data_win[s_i]);
+        for (int n_i = FM::n_compute_partitions; n_i < partitions; ++ n_i) {
+          MPI_Win_lock(MPI_LOCK_SHARED, n_i, 0, *outgoing_adj_list_data_win[s_i]);
         }
       }
+      
       // #ifdef PRINT_DEBUG_MESSAGES
       // fprintf(stderr,"%d: CCC: %x\n", partition_id, outgoing_adj_list[s_i]);
       // #endif
@@ -1469,7 +1468,7 @@ public:
     incoming_adj_bitmap = new Bitmap * [sockets];
     incoming_adj_index_data_win = new MPI_Win** [sockets];
     incoming_adj_bitmap_data_win = new MPI_Win** [sockets];
-    incoming_adj_list_data_win = new MPI_Win** [sockets];
+    incoming_adj_list_data_win = new MPI_Win* [sockets];
     for (int s_i=0;s_i<sockets;s_i++) {
       incoming_adj_bitmap[s_i] = new Bitmap (vertices);
       incoming_adj_bitmap[s_i]->clear();
@@ -1605,21 +1604,19 @@ public:
       fprintf(stderr,"part(%d) E_%d has %lu dense mode edges\n", partition_id, s_i, incoming_edges[s_i]);
       #endif
       incoming_adj_list[s_i] = (AdjUnit<EdgeData>*)numa_alloc_onnode(unit_size * incoming_edges[s_i], s_i);
-      incoming_adj_list_data_win[s_i] = new MPI_Win* [threads];
-      for (int t_i=0; t_i<threads; t_i++) {
-        incoming_adj_list_data_win[s_i][t_i] = new MPI_Win;
-        if (partition_id >= FM::n_compute_partitions) {
-          unsigned long size = incoming_edges[s_i]*unit_size;
-          MPI_Aint mpi_size = incoming_edges[s_i]*unit_size;
-          // MPI_Get_address(&size, &mpi_size);
-          MPI_Win_create(incoming_adj_list[s_i], mpi_size, unit_size, MPI_INFO_NULL, MPI_COMM_WORLD, incoming_adj_list_data_win[s_i][t_i]);
-        } else {
-          MPI_Win_create(NULL, 0, 1, MPI_INFO_NULL, MPI_COMM_WORLD, incoming_adj_list_data_win[s_i][t_i]);
-          for (int n_i = FM::n_compute_partitions; n_i < partitions; ++ n_i) {
-            MPI_Win_lock(MPI_LOCK_SHARED, n_i, 0, *incoming_adj_list_data_win[s_i][t_i]);
-          }
-      }
+      incoming_adj_list_data_win[s_i] = new MPI_Win;
+
+      if (partition_id >= FM::n_compute_partitions) {
+        unsigned long size = incoming_edges[s_i]*unit_size;
+        MPI_Aint mpi_size = incoming_edges[s_i]*unit_size;
+        // MPI_Get_address(&size, &mpi_size);
+        MPI_Win_create(incoming_adj_list[s_i], mpi_size, unit_size, MPI_INFO_NULL, MPI_COMM_WORLD, incoming_adj_list_data_win[s_i]);
+      } else {
+        MPI_Win_create(NULL, 0, 1, MPI_INFO_NULL, MPI_COMM_WORLD, incoming_adj_list_data_win[s_i]);
+        for (int n_i = FM::n_compute_partitions; n_i < partitions; ++ n_i) {
+          MPI_Win_lock(MPI_LOCK_SHARED, n_i, 0, *incoming_adj_list_data_win[s_i]);
         }
+      }
       // unsigned segments = (incoming_edges[s_i]*unit_size) >> 30;
       // incoming_adj_list_data_win[s_i] = new MPI_Win** [segments];
       // unsigned seg_i = 0;
@@ -2513,12 +2510,11 @@ public:
       for (int i = 0; i < threads; ++i) {
         producer_idx.push_back(0);
         consumer_idx.push_back(0);
-        fetching_args_bounded_buffer.push_back(std::vector<std::vector<int>>(1024));
+        fetching_args_bounded_buffer.push_back(std::vector<std::vector<int>>(FM::BOUNDED_QUEUE_SIZE));
       }
 
       bool fetching_thread_should_terminate = false;
       std::thread fetching_thread([&]() {
-        int thread_i = 0;
         while (true) {
           if (fetching_thread_should_terminate) {
             bool all_done = true;
@@ -2529,40 +2525,49 @@ public:
               break;
           }
 
-          if (consumer_idx[thread_i] >= producer_idx[thread_i]) {
-            __asm volatile ("pause" ::: "memory");
-            thread_i++;
-            if (thread_i >= threads) {
-              thread_i = 0;
-            }
-            continue;
-          }
-          unsigned fetching_num = producer_idx[thread_i] - consumer_idx[thread_i];
-          assert(fetching_num <= 1024);
-          unsigned idx = consumer_idx[thread_i];
-          for (unsigned i = idx; i < idx + fetching_num; ++i) {
-            auto& args = fetching_args_bounded_buffer[thread_i][i % 1024];
-            int v_i = args[0];
-            int remote_node = args[1];
-            int index_0 = args[2];
-            int index_1 = args[3];
-            int s_i = args[4];
-            int thread_id = args[5];
-            int n_adj_edges = index_1 - index_0;
-            auto cached_edgeset_ptr = &outgoing_edge_cache[0][0][v_i % FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES];
-            
-            // if already cached, skip fetching this vertex's neighbors on remote_node.
-            if (cached_edgeset_ptr->vtx == v_i + 1)
+          std::unordered_map<std::vector<int>, std::vector<int>, FM::MyHashFunction> flushing_windows;
+
+          for (int thread_i = 0; thread_i < threads; ++thread_i) {
+            if (consumer_idx[thread_i] >= producer_idx[thread_i])
               continue;
             
-            cached_edgeset_ptr->edges.resize(n_adj_edges);
-            MPI_Get(cached_edgeset_ptr->edges.data(), n_adj_edges*unit_size, MPI_CHAR,
-                    remote_node, index_0, n_adj_edges*unit_size, MPI_CHAR, *outgoing_adj_list_data_win[s_i][thread_id]);
-            MPI_Win_flush(remote_node, *outgoing_adj_list_data_win[s_i][thread_id]);
-            __asm volatile ("pause" ::: "memory");
-            cached_edgeset_ptr->vtx = v_i + 1;
+            unsigned fetching_num = producer_idx[thread_i] - consumer_idx[thread_i];
+            assert(fetching_num <= FM::BOUNDED_QUEUE_SIZE);
+            unsigned idx = consumer_idx[thread_i];
+            for (unsigned i = idx; i < idx + fetching_num; ++i) {
+              auto& args = fetching_args_bounded_buffer[thread_i][i % FM::BOUNDED_QUEUE_SIZE];
+              int v_i = args[0];
+              int remote_node = args[1];
+              int index_0 = args[2];
+              int index_1 = args[3];
+              int s_i = args[4];
+              int thread_id = args[5];
+              int n_adj_edges = index_1 - index_0;
+              flushing_windows[{remote_node, s_i}].push_back(v_i);
+              auto cached_edgeset_ptr = &outgoing_edge_cache[0][0][v_i % FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES];
+              
+              // if already cached, skip fetching this vertex's neighbors on remote_node.
+              if (cached_edgeset_ptr->vtx == v_i + 1)
+                continue;
+              
+              cached_edgeset_ptr->edges.resize(n_adj_edges);
+              MPI_Get(cached_edgeset_ptr->edges.data(), n_adj_edges*unit_size, MPI_CHAR,
+                      remote_node, index_0, n_adj_edges*unit_size, MPI_CHAR, *outgoing_adj_list_data_win[s_i]);
+            }
+            __sync_fetch_and_add(&consumer_idx[thread_i], fetching_num);           
           }
-          __sync_fetch_and_add(&consumer_idx[thread_i], fetching_num);
+
+          // flush all fetching jobs
+          for (auto itr = flushing_windows.begin(); itr != flushing_windows.end(); ++itr) {
+              auto& key = itr->first;
+              MPI_Win_flush(key[0], *outgoing_adj_list_data_win[key[1]]);
+              for (auto v_itr = itr->second.begin(); v_itr != itr->second.end(); ++v_itr) {
+                __asm volatile ("pause" ::: "memory");
+                auto v_i = *v_itr;
+                auto cached_edgeset_ptr = &outgoing_edge_cache[0][0][v_i % FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES];
+                cached_edgeset_ptr->vtx = v_i + 1;
+              }
+          }
         }
       });
 
@@ -2620,7 +2625,7 @@ public:
                   end_b_i = thread_state[thread_id]->end;
                 }
                 // fprintf(stderr, "%d XXX\n", partition_id);
-                while (producer_idx[thread_id] - consumer_idx[thread_id] > 1024 - (end_b_i-begin_b_i)) {
+                while (producer_idx[thread_id] - consumer_idx[thread_id] > FM::BOUNDED_QUEUE_SIZE - (end_b_i-begin_b_i)) {
                   __asm volatile ("pause" ::: "memory");
                 }
                 // fprintf(stderr, "%d YYY\n", partition_id);
@@ -2643,7 +2648,7 @@ public:
                     #endif
 
                     // fprintf(stderr, "%d producer_idx[thread_id] = %d\n", partition_id, producer_idx[thread_id]);
-                    fetching_args_bounded_buffer[thread_id][producer_idx[thread_id] % 1024] = {v_i, remote_node, indices[0], indices[1], s_i, thread_id};
+                    fetching_args_bounded_buffer[thread_id][producer_idx[thread_id] % FM::BOUNDED_QUEUE_SIZE] = {v_i, remote_node, indices[0], indices[1], s_i, thread_id};
                     
                     __asm volatile ("pause" ::: "memory");
                     __sync_fetch_and_add(&producer_idx[thread_id], 1);
