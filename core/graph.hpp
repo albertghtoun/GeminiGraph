@@ -2588,7 +2588,7 @@ public:
               int thread_id = args[5];
               int n_adj_edges = index_1 - index_0;
               flushing_windows[{remote_node, s_i}].push_back(v_i);
-              auto cached_edgeset_ptr = &outgoing_edge_cache[0][s_i][v_i % FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES];
+              auto cached_edgeset_ptr = &outgoing_edge_cache[remote_node][s_i][v_i % FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES];
               
               // if already cached, skip fetching this vertex's neighbors on remote_node.
               if (cached_edgeset_ptr->vtx == v_i + 1)
@@ -2608,7 +2608,7 @@ public:
               for (auto v_itr = itr->second.begin(); v_itr != itr->second.end(); ++v_itr) {
                 __asm volatile ("pause" ::: "memory");
                 auto v_i = *v_itr;
-                auto cached_edgeset_ptr = &outgoing_edge_cache[0][key[1]][v_i % FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES];
+                auto cached_edgeset_ptr = &outgoing_edge_cache[key[0]][key[1]][v_i % FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES];
                 cached_edgeset_ptr->vtx = v_i + 1;
               }
           }
@@ -2793,7 +2793,7 @@ public:
                     bool use_cached = false;
                     // fprintf(stderr, "RRR\n");
                     // auto cached_edgeset_ptr = &outgoing_edge_cache[remote_node][s_i][v_i % FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES];
-                    auto cached_edgeset_ptr = &outgoing_edge_cache[0][s_i][v_i % FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES];
+                    auto cached_edgeset_ptr = &outgoing_edge_cache[remote_node][s_i][v_i % FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES];
                     // fprintf(stderr, "KKK\n");
                     if(cached_edgeset_ptr->vtx > 0) {
                       // cache hit
@@ -2911,7 +2911,7 @@ public:
                       bool use_cached = false;
                       // fprintf(stderr, "RRR\n");
                       // auto cached_edgeset_ptr = &outgoing_edge_cache[remote_node][s_i][v_i % FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES];
-                      auto cached_edgeset_ptr = &outgoing_edge_cache[0][s_i][v_i % FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES];
+                      auto cached_edgeset_ptr = &outgoing_edge_cache[remote_node][s_i][v_i % FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES];
                       // fprintf(stderr, "KKK\n");
                       if(cached_edgeset_ptr->vtx > 0) {
                         // cache hit
