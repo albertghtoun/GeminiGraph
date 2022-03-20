@@ -125,7 +125,7 @@ public:
   VertexId max_in_degree_;
   VertexId * partition_offset; // VertexId [partitions+1]
   VertexId * local_partition_offset; // VertexId [sockets+1]
-
+  VertexId * local_partition_offsets; // VertexId [partitions * (sockets + 1)]
   VertexId owned_vertices;
   EdgeId * outgoing_edges; // EdgeId [sockets]
   EdgeId * incoming_edges; // EdgeId [sockets]
@@ -180,13 +180,13 @@ public:
   #endif
 
   Graph() {
-    threads = numa_num_configured_cpus();
-    // threads = 6; // speedup as threads count go from 1 to 6, then sharply goes down.
+    // threads = numa_num_configured_cpus();
+    threads = 12; // speedup as threads count go from 1 to 6, then sharply goes down.
     #if ENABLE_EDGE_CACHE == 1
     assert(threads <= FM::edge_cache_set<EdgeData>::MAX_THREADS_SUPPORTED);
     #endif
 
-    sockets = 1; // numa_num_configured_nodes();
+    sockets = 2; // numa_num_configured_nodes();
     threads_per_socket = threads / sockets;
 
     init();
@@ -276,9 +276,9 @@ public:
     #pragma omp parallel for
     for (int t_i=0;t_i<threads;t_i++) {
       int s_i = get_socket_id(t_i);
-      // assert(numa_run_on_node(s_i)==0);
+      assert(numa_run_on_node(s_i)==0);
       #ifdef PRINT_DEBUG_MESSAGES
-      // fprintf(stderr,"thread-%d bound to socket-%d\n", t_i, s_i);
+      fprintf(stderr,"thread-%d bound to socket-%d\n", t_i, s_i);
       #endif
     }
     #ifdef PRINT_DEBUG_MESSAGES
@@ -359,7 +359,7 @@ public:
       array[v_i] = value;
     }
 
-    // fill out the deligated portion of the vertex array.
+    // fill out the delegated portion of the vertex array.
     #pragma omp parallel for
     for (VertexId v_i=partition_offset[FM::n_compute_partitions];v_i<partition_offset[partitions];v_i++) {
       array[v_i] = value;
@@ -373,6 +373,13 @@ public:
     assert(array!=NULL);
     for (int s_i=0;s_i<sockets;s_i++) {
       numa_tonode_memory(array + sizeof(T) * local_partition_offset[s_i], sizeof(T) * (local_partition_offset[s_i+1] - local_partition_offset[s_i]), s_i);
+    }
+
+    for (int delegated : get_delegated_partitions(partition_id)) {
+      for (int s_i=0; s_i<sockets;s_i++) {
+          numa_tonode_memory(array + sizeof(T) * local_partition_offsets[delegated*(sockets + 1) + s_i], 
+                            sizeof(T) * (local_partition_offsets[delegated*(sockets + 1) + s_i + 1] - local_partition_offsets[delegated*(sockets + 1) + s_i]), s_i);
+      }
     }
     return (T*)array;
   }
@@ -656,6 +663,9 @@ public:
         fprintf(stderr,"|V'_%d_%d| = %u |E_%d| = %lu\n", partition_id, s_i, local_partition_offset[s_i+1] - local_partition_offset[s_i], partition_id, sub_part_out_edges);
         #endif
       }
+
+      local_partition_offsets = new VertexId [partitions * (sockets + 1)];
+      MPI_Allgather(local_partition_offset, sockets + 1, vid_t, local_partition_offsets, sockets + 1, vid_t, MPI_COMM_WORLD);
     }
 
     in_degree = out_degree;
@@ -1158,6 +1168,42 @@ public:
         fprintf(stderr,"|V'_%d_%d| = %u |E^dense_%d_%d| = %lu\n", partition_id, s_i, local_partition_offset[s_i+1] - local_partition_offset[s_i], partition_id, s_i, sub_part_out_edges);
         #endif
       }
+
+      local_partition_offsets = new VertexId [partitions * (sockets + 1)];
+      MPI_Allgather(local_partition_offset, sockets + 1, vid_t, local_partition_offsets, sockets + 1, vid_t, MPI_COMM_WORLD);
+    }
+
+    VertexId * filtered_out_degree = alloc_vertex_array<VertexId>();
+    for (VertexId v_i=partition_offset[partition_id];v_i<partition_offset[partition_id+1];v_i++) {
+      filtered_out_degree[v_i] = out_degree[v_i];
+    }
+    for (auto p : get_delegated_partitions(partition_id)) {
+      for (VertexId v_i=partition_offset[p];v_i<partition_offset[p+1];v_i++) {
+        filtered_out_degree[v_i] = out_degree[v_i];
+      }
+    }
+    numa_free(out_degree, sizeof(VertexId) * vertices);
+    out_degree = filtered_out_degree;
+
+    VertexId * filtered_in_degree = alloc_vertex_array<VertexId>();
+    for (VertexId v_i=partition_offset[partition_id];v_i<partition_offset[partition_id+1];v_i++) {
+      filtered_in_degree[v_i] = in_degree[v_i];
+    }
+    for (auto p : get_delegated_partitions(partition_id)) {
+      for (VertexId v_i=partition_offset[p];v_i<partition_offset[p+1];v_i++) {
+        filtered_in_degree[v_i] = in_degree[v_i];
+      }
+    }
+    numa_free(in_degree, sizeof(VertexId) * vertices);
+    in_degree = filtered_in_degree;
+
+    max_out_degree_ = 0;
+    for (int i = 0; i < vertices; ++i) {
+      max_out_degree_ = std::max(max_out_degree_, out_degree[i]);
+    }
+    max_in_degree_ = 0;
+    for (int i = 0; i < vertices; ++i) {
+      max_in_degree_ = std::max(max_in_degree_, in_degree[i]);
     }
 
     int * buffered_edges = new int [partitions];
@@ -1808,15 +1854,6 @@ public:
 
     incoming_edge_cache_pool->head.next = NULL;
     *FM::incoming_edge_cache_pool_count = 0;
-
-    max_out_degree_ = 0;
-    for (int i = 0; i < vertices; ++i) {
-      max_out_degree_ = std::max(max_out_degree_, out_degree[i]);
-    }
-    max_in_degree_ = 0;
-    for (int i = 0; i < vertices; ++i) {
-      max_in_degree_ = std::max(max_in_degree_, in_degree[i]);
-    }
     #endif
 
     delete [] buffered_edges;
@@ -1907,8 +1944,8 @@ public:
   // process vertices
   template<typename R>
   R process_vertices(std::function<R(VertexId)> process, Bitmap * active) {
-    double stream_time = 0;
-    stream_time -= MPI_Wtime();
+    double process_vertices_stream_time = 0;
+    process_vertices_stream_time -= MPI_Wtime();
 
     R reducer = 0;
     size_t basic_chunk = 64;
@@ -2085,10 +2122,10 @@ public:
     R global_reducer;
     MPI_Datatype dt = get_mpi_data_type<R>();
     MPI_Allreduce(&reducer, &global_reducer, 1, dt, MPI_SUM, FM::compute_comm_world);
-    stream_time += MPI_Wtime();
+    process_vertices_stream_time += MPI_Wtime();
     #ifdef PRINT_DEBUG_MESSAGES
     if (partition_id==0) {
-      fprintf(stderr,"process_vertices took %lf (s)\n", stream_time);
+      fprintf(stderr,"process_vertices took %lf (s)\n", process_vertices_stream_time);
     }
     #endif
     return global_reducer;
@@ -2120,6 +2157,7 @@ public:
   R process_edges(std::function<void(VertexId)> sparse_signal, std::function<R(VertexId, M, VertexAdjList<EdgeData>)> sparse_slot, std::function<void(VertexId, VertexAdjList<EdgeData>)> dense_signal, std::function<R(VertexId, M)> dense_slot, Bitmap * active, Bitmap * dense_selective = nullptr) {
     double stream_time = 0;
     stream_time -= MPI_Wtime();
+    static double step_by_step_time = 0;
 
     for (int t_i=0;t_i<threads;t_i++) {
       local_send_buffer[t_i]->resize( sizeof(MsgUnit<M>) * local_send_buffer_limit );
@@ -2168,6 +2206,7 @@ public:
         fprintf(stderr,"sparse mode\n");
       }
       #endif
+      
       int * recv_queue = new int [FM::n_compute_partitions];
       int recv_queue_size = 0;
       std::mutex recv_queue_mutex;
@@ -2346,6 +2385,7 @@ public:
       recv_queue_mutex.lock();
       recv_queue_size += 1;
       recv_queue_mutex.unlock();
+
       std::thread send_thread([&](){
         for (int step=1;step<partitions;step++) {
           int i = (partition_id - step + partitions) % partitions;
@@ -2414,6 +2454,7 @@ public:
         }
       });
 
+      step_by_step_time -= MPI_Wtime();
       for (int step=0;step<partitions;step++) {
         while (true) {
           recv_queue_mutex.lock();
@@ -2499,11 +2540,14 @@ public:
             reducer2 += local_reducer;
           }
         }
+        
         #ifdef PRINT_DEBUG_MESSAGES
         fprintf(stderr, "%d done local sparse slot at step %d. reducer2 = %d\n", partition_id, step, reducer2);
         #endif
       }
+      step_by_step_time += MPI_Wtime();
 
+#if ENABLE_EDGE_CACHE == 1
       std::vector<unsigned> producer_idx;
       std::vector<unsigned> consumer_idx;
       std::vector<std::vector<std::vector<int>>> fetching_args_bounded_buffer;
@@ -2570,6 +2614,7 @@ public:
           }
         }
       });
+#endif
 
       for (int step=0;step<partitions;step++) {
         for (uint fp : delegated_farmem_partitions) {
@@ -2606,10 +2651,10 @@ public:
               thread_state[t_i]->status = WORKING;
             }
             // fprintf(stderr, "done work assignment\n");
-            #if ENABLE_EDGE_CACHE == 1
-            FM::edge_cache_set<EdgeData>* gc_edgeset_start = NULL;
-            std::mutex insert_after_head;
-            #endif
+            // #if ENABLE_EDGE_CACHE == 1
+            // FM::edge_cache_set<EdgeData>* gc_edgeset_start = NULL;
+            // std::mutex insert_after_head;
+            // #endif
 
             #if ENABLE_EDGE_CACHE == 1
             #pragma omp parallel 
@@ -2790,8 +2835,8 @@ public:
                     #else
                     std::vector<AdjUnit<EdgeData>> locally_cached_adj(n_adj_edges+1);
                     MPI_Get(&locally_cached_adj[0], n_adj_edges*unit_size, MPI_CHAR,
-                            remote_node, indices[0], n_adj_edges*unit_size, MPI_CHAR, *outgoing_adj_list_data_win[s_i][thread_id]);
-                    MPI_Win_flush(remote_node, *outgoing_adj_list_data_win[s_i][thread_id]);
+                            remote_node, indices[0], n_adj_edges*unit_size, MPI_CHAR, *outgoing_adj_list_data_win[s_i]);
+                    MPI_Win_flush(remote_node, *outgoing_adj_list_data_win[s_i]);
                     local_reducer += sparse_slot(v_i, msg_data, VertexAdjList<EdgeData>(&locally_cached_adj[0], &locally_cached_adj[n_adj_edges]));
                     #endif
                   }
@@ -2908,8 +2953,8 @@ public:
                       #else
                       std::vector<AdjUnit<EdgeData>> locally_cached_adj(n_adj_edges+1);
                       MPI_Get(&locally_cached_adj[0], n_adj_edges*unit_size, MPI_CHAR,
-                              remote_node, indices[0], n_adj_edges*unit_size, MPI_CHAR, *outgoing_adj_list_data_win[s_i][thread_id]);
-                      MPI_Win_flush(remote_node, *outgoing_adj_list_data_win[s_i][thread_id]);
+                              remote_node, indices[0], n_adj_edges*unit_size, MPI_CHAR, *outgoing_adj_list_data_win[s_i]);
+                      MPI_Win_flush(remote_node, *outgoing_adj_list_data_win[s_i]);
                       // printf("remote sparse_slot %d\n", v_i);
                       local_reducer += sparse_slot(v_i, msg_data, VertexAdjList<EdgeData>(&locally_cached_adj[0], &locally_cached_adj[n_adj_edges]));
                       #endif
@@ -3051,11 +3096,14 @@ public:
         #ifdef PRINT_DEBUG_MESSAGES
         fprintf(stderr, "%d receiver thread joined.\n", partition_id);
         #endif
+
+#if ENABLE_EDGE_CACHE == 1
       fetching_thread_should_terminate = true;
       fetching_thread.join();
         #ifdef PRINT_DEBUG_MESSAGES
         fprintf(stderr, "%d fetching thread joined.\n", partition_id);
-        #endif      
+        #endif
+#endif
       // gc_thread_should_end = true;
       // gc.join();
       //   #ifdef PRINT_DEBUG_MESSAGES
@@ -3263,6 +3311,7 @@ public:
     stream_time += MPI_Wtime();
     #ifdef PRINT_DEBUG_MESSAGES
     if (partition_id==0) {
+      fprintf(stderr, "step-by-step time %lf (s)\n", step_by_step_time);
       fprintf(stderr,"process_edges took %lf (s)\n", stream_time);
     }
     #endif
