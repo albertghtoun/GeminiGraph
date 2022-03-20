@@ -150,6 +150,7 @@ public:
   CompressedAdjIndexUnit ** compressed_outgoing_adj_index; // CompressedAdjIndexUnit [sockets] [...+1]; numa-aware
 
   ThreadState ** thread_state; // ThreadState* [threads]; numa-aware
+  FM::PerThreadBoundedBufferState ** bounded_buffer_state; // PerThreadBoundedBufferState* [threads]; nume-aware
   ThreadState ** tuned_chunks_dense; // ThreadState [partitions][threads];
   ThreadState ** tuned_chunks_sparse; // ThreadState [partitions][threads];
 
@@ -266,10 +267,13 @@ public:
     omp_set_dynamic(0);
     omp_set_num_threads(threads);
     thread_state = new ThreadState * [threads];
+    bounded_buffer_state = new FM::PerThreadBoundedBufferState * [threads];
     local_send_buffer_limit = 16;
     local_send_buffer = new MessageBuffer * [threads];
     for (int t_i=0;t_i<threads;t_i++) {
       thread_state[t_i] = (ThreadState*)numa_alloc_onnode( sizeof(ThreadState), get_socket_id(t_i));
+      bounded_buffer_state[t_i] = (FM::PerThreadBoundedBufferState*)numa_alloc_onnode( sizeof(FM::PerThreadBoundedBufferState), get_socket_id(t_i));
+      bounded_buffer_state[t_i]->init(get_socket_id(t_i));
       local_send_buffer[t_i] = (MessageBuffer*)numa_alloc_onnode( sizeof(MessageBuffer), get_socket_id(t_i));
       local_send_buffer[t_i]->init(get_socket_id(t_i));
     }
@@ -2157,7 +2161,6 @@ public:
   R process_edges(std::function<void(VertexId)> sparse_signal, std::function<R(VertexId, M, VertexAdjList<EdgeData>)> sparse_slot, std::function<void(VertexId, VertexAdjList<EdgeData>)> dense_signal, std::function<R(VertexId, M)> dense_slot, Bitmap * active, Bitmap * dense_selective = nullptr) {
     double stream_time = 0;
     stream_time -= MPI_Wtime();
-    static double step_by_step_time = 0;
 
     for (int t_i=0;t_i<threads;t_i++) {
       local_send_buffer[t_i]->resize( sizeof(MsgUnit<M>) * local_send_buffer_limit );
@@ -2454,7 +2457,6 @@ public:
         }
       });
 
-      step_by_step_time -= MPI_Wtime();
       for (int step=0;step<partitions;step++) {
         while (true) {
           recv_queue_mutex.lock();
@@ -2545,16 +2547,19 @@ public:
         fprintf(stderr, "%d done local sparse slot at step %d. reducer2 = %d\n", partition_id, step, reducer2);
         #endif
       }
-      step_by_step_time += MPI_Wtime();
 
 #if ENABLE_EDGE_CACHE == 1
-      std::vector<unsigned> producer_idx;
-      std::vector<unsigned> consumer_idx;
-      std::vector<std::vector<std::vector<int>>> fetching_args_bounded_buffer;
-      for (int i = 0; i < threads; ++i) {
-        producer_idx.push_back(0);
-        consumer_idx.push_back(0);
-        fetching_args_bounded_buffer.push_back(std::vector<std::vector<int>>(FM::BOUNDED_QUEUE_SIZE));
+      // std::vector<unsigned> producer_idx;
+      // std::vector<unsigned> consumer_idx;
+      // std::vector<std::vector<std::vector<int>>> fetching_args_bounded_buffer;
+      // for (int i = 0; i < threads; ++i) {
+      //   producer_idx.push_back(0);
+      //   consumer_idx.push_back(0);
+      //   fetching_args_bounded_buffer.push_back(std::vector<std::vector<int>>(FM::BOUNDED_QUEUE_SIZE));
+      // }
+
+      for (int tid = 0; tid < threads; ++tid) {
+        bounded_buffer_state[tid]->init(get_socket_id(tid));
       }
 
       bool fetching_thread_should_terminate = false;
@@ -2563,7 +2568,7 @@ public:
           if (fetching_thread_should_terminate) {
             bool all_done = true;
             for (int i = 0; i < threads; ++i) {
-              all_done &= consumer_idx[i] >= producer_idx[i];
+              all_done &= bounded_buffer_state[i]->consumer_idx >= bounded_buffer_state[i]->producer_idx;
             }
             if (all_done)
               break;
@@ -2572,20 +2577,20 @@ public:
           std::unordered_map<std::vector<int>, std::vector<int>, FM::MyHashFunction> flushing_windows;
 
           for (int thread_i = 0; thread_i < threads; ++thread_i) {
-            if (consumer_idx[thread_i] >= producer_idx[thread_i])
+            if (bounded_buffer_state[thread_i]->consumer_idx >= bounded_buffer_state[thread_i]->producer_idx)
               continue;
             
-            unsigned fetching_num = producer_idx[thread_i] - consumer_idx[thread_i];
+            unsigned fetching_num = bounded_buffer_state[thread_i]->producer_idx - bounded_buffer_state[thread_i]->consumer_idx;
             assert(fetching_num <= FM::BOUNDED_QUEUE_SIZE);
-            unsigned idx = consumer_idx[thread_i];
+            unsigned idx = bounded_buffer_state[thread_i]->consumer_idx;
             for (unsigned i = idx; i < idx + fetching_num; ++i) {
-              auto& args = fetching_args_bounded_buffer[thread_i][i % FM::BOUNDED_QUEUE_SIZE];
-              int v_i = args[0];
-              int remote_node = args[1];
-              int index_0 = args[2];
-              int index_1 = args[3];
-              int s_i = args[4];
-              int thread_id = args[5];
+              auto& args = bounded_buffer_state[thread_i]->fetching_args_bounded_buffer[i % FM::BOUNDED_QUEUE_SIZE];
+              int v_i = args.v_i;
+              int remote_node = args.remote_node;
+              int index_0 = args.index_0;
+              int index_1 = args.index_1;
+              int s_i = args.s_i;
+              int thread_id = args.thread_id;
               int n_adj_edges = index_1 - index_0;
               flushing_windows[{remote_node, s_i}].push_back(v_i);
               auto cached_edgeset_ptr = &outgoing_edge_cache[remote_node][s_i][v_i % FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES];
@@ -2598,7 +2603,7 @@ public:
               MPI_Get(cached_edgeset_ptr->edges, n_adj_edges*unit_size, MPI_CHAR,
                       remote_node, index_0, n_adj_edges*unit_size, MPI_CHAR, *outgoing_adj_list_data_win[s_i]);
             }
-            __sync_fetch_and_add(&consumer_idx[thread_i], fetching_num);           
+            __sync_fetch_and_add(&bounded_buffer_state[thread_i]->consumer_idx, fetching_num);           
           }
 
           // flush all fetching jobs
@@ -2655,7 +2660,7 @@ public:
             // FM::edge_cache_set<EdgeData>* gc_edgeset_start = NULL;
             // std::mutex insert_after_head;
             // #endif
-
+            FM::step_by_step_time -= MPI_Wtime();
             #if ENABLE_EDGE_CACHE == 1
             #pragma omp parallel 
             {
@@ -2670,10 +2675,11 @@ public:
                   end_b_i = thread_state[thread_id]->end;
                 }
                 // fprintf(stderr, "%d XXX\n", partition_id);
-                while (producer_idx[thread_id] - consumer_idx[thread_id] > FM::BOUNDED_QUEUE_SIZE - (end_b_i-begin_b_i)) {
+                while (bounded_buffer_state[thread_id]->producer_idx - bounded_buffer_state[thread_id]->consumer_idx > FM::BOUNDED_QUEUE_SIZE - (end_b_i-begin_b_i)) {
                   __asm volatile ("pause" ::: "memory");
                 }
                 // fprintf(stderr, "%d YYY\n", partition_id);
+                int n_produced = 0;
                 for (b_i=begin_b_i;b_i<end_b_i;b_i++) {
                   VertexId v_i = buffer[b_i].vertex;
                   M msg_data = buffer[b_i].msg_data;
@@ -2693,15 +2699,16 @@ public:
                     #endif
 
                     // fprintf(stderr, "%d producer_idx[thread_id] = %d\n", partition_id, producer_idx[thread_id]);
-                    fetching_args_bounded_buffer[thread_id][producer_idx[thread_id] % FM::BOUNDED_QUEUE_SIZE] = {v_i, remote_node, indices[0], indices[1], s_i, thread_id};
-                    
-                    __asm volatile ("pause" ::: "memory");
-                    __sync_fetch_and_add(&producer_idx[thread_id], 1);
+                    bounded_buffer_state[thread_id]->fetching_args_bounded_buffer[(bounded_buffer_state[thread_id]->producer_idx + n_produced) % FM::BOUNDED_QUEUE_SIZE] = {v_i, remote_node, indices[0], indices[1], s_i, thread_id};
+                    n_produced+=1;
                   }
                 }
+                __sync_fetch_and_add(&bounded_buffer_state[thread_id]->producer_idx, n_produced);
               }
             }
             #endif
+            FM::step_by_step_time += MPI_Wtime();
+
             // #ifdef PRINT_DEBUG_MESSAGES
             // fprintf(stderr, "%d submitted all fetching jobs. buffer size = %d\n", partition_id, buffer_size);
             // #endif
@@ -2799,6 +2806,7 @@ public:
                       // cache hit
                       if(cached_edgeset_ptr->vtx == v_i + 1) {
                         {
+                          assert(cached_edgeset_ptr->socket_id == s_i);
                           local_reducer += sparse_slot(v_i, msg_data, VertexAdjList<EdgeData>(&cached_edgeset_ptr->edges[0], &cached_edgeset_ptr->edges[n_adj_edges]));
                           use_cached = true;
                         }
@@ -3307,12 +3315,12 @@ public:
     // dt = get_mpi_data_type<unsigned long>();
     // MPI_Allreduce(MPI_IN_PLACE, active->data, WORD_OFFSET(vertices), dt, MPI_BOR, FM::compute_comm_world);
     stream_time += MPI_Wtime();
-    #ifdef PRINT_DEBUG_MESSAGES
+    // #ifdef PRINT_DEBUG_MESSAGES
     if (partition_id==0) {
-      fprintf(stderr, "step-by-step time %lf (s)\n", step_by_step_time);
-      fprintf(stderr,"process_edges took %lf (s)\n", stream_time);
+      fprintf(stderr, "step-by-step time %lf (s)\n", FM::step_by_step_time);
+      // fprintf(stderr,"process_edges took %lf (s)\n", stream_time);
     }
-    #endif
+    // #endif
     return global_reducer;
   }
 
