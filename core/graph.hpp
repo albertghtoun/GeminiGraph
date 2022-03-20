@@ -1833,26 +1833,26 @@ public:
     #endif
 
     #if ENABLE_EDGE_CACHE == 1
-    // for (int i=0;i<partitions;i++) {
-    //   for (int s_i=0;s_i<sockets;s_i++) {
-    //     outgoing_edge_cache[i][s_i] = (FM::edge_cache_set<EdgeData>*)numa_alloc_onnode(sizeof(FM::edge_cache_set<EdgeData>) * FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES, s_i);
-    //     memset(outgoing_edge_cache[i][s_i], 0, sizeof(FM::edge_cache_set<EdgeData>) * FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES);
-    //   }
-    // }
-    outgoing_edge_cache[0][0] = (FM::edge_cache_set<EdgeData>*)numa_alloc_onnode(sizeof(FM::edge_cache_set<EdgeData>) * FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES, 0);
+    for (int i=0;i<partitions;i++) {
+      for (int s_i=0;s_i<sockets;s_i++) {
+        outgoing_edge_cache[i][s_i] = (FM::edge_cache_set<EdgeData>*)numa_alloc_onnode(sizeof(FM::edge_cache_set<EdgeData>) * FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES, s_i);
+        memset(outgoing_edge_cache[i][s_i], 0, sizeof(FM::edge_cache_set<EdgeData>) * FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES);
+      }
+    }
+    // outgoing_edge_cache[0][0] = (FM::edge_cache_set<EdgeData>*)numa_alloc_onnode(sizeof(FM::edge_cache_set<EdgeData>) * FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES, 0);
 
-    outgoing_edge_cache_pool->head.next = NULL;
+    // outgoing_edge_cache_pool->head.next = NULL;
     *FM::outgoing_edge_cache_pool_count = 0;
 
-    // for (int i=0;i<partitions;i++) {
-    //   for (int s_i=0;s_i<sockets;s_i++) {
-    //     incoming_edge_cache[i][s_i] = (FM::edge_cache_set<EdgeData>*)numa_alloc_onnode(sizeof(FM::edge_cache_set<EdgeData>) * FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES, s_i);
-    //     memset(incoming_edge_cache[i][s_i], 0, sizeof(FM::edge_cache_set<EdgeData>) * FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES);
-    //   }
-    // }
-    incoming_edge_cache[0][0] = (FM::edge_cache_set<EdgeData>*)numa_alloc_onnode(sizeof(FM::edge_cache_set<EdgeData>) * FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES, 0);
+    for (int i=0;i<partitions;i++) {
+      for (int s_i=0;s_i<sockets;s_i++) {
+        incoming_edge_cache[i][s_i] = (FM::edge_cache_set<EdgeData>*)numa_alloc_onnode(sizeof(FM::edge_cache_set<EdgeData>) * FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES, s_i);
+        memset(incoming_edge_cache[i][s_i], 0, sizeof(FM::edge_cache_set<EdgeData>) * FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES);
+      }
+    }
+    // incoming_edge_cache[0][0] = (FM::edge_cache_set<EdgeData>*)numa_alloc_onnode(sizeof(FM::edge_cache_set<EdgeData>) * FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES, 0);
 
-    incoming_edge_cache_pool->head.next = NULL;
+    // incoming_edge_cache_pool->head.next = NULL;
     *FM::incoming_edge_cache_pool_count = 0;
     #endif
 
@@ -2588,14 +2588,14 @@ public:
               int thread_id = args[5];
               int n_adj_edges = index_1 - index_0;
               flushing_windows[{remote_node, s_i}].push_back(v_i);
-              auto cached_edgeset_ptr = &outgoing_edge_cache[0][0][v_i % FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES];
+              auto cached_edgeset_ptr = &outgoing_edge_cache[0][s_i][v_i % FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES];
               
               // if already cached, skip fetching this vertex's neighbors on remote_node.
               if (cached_edgeset_ptr->vtx == v_i + 1)
                 continue;
               
-              cached_edgeset_ptr->edges.resize(n_adj_edges);
-              MPI_Get(cached_edgeset_ptr->edges.data(), n_adj_edges*unit_size, MPI_CHAR,
+              cached_edgeset_ptr->init(n_adj_edges, s_i);
+              MPI_Get(cached_edgeset_ptr->edges, n_adj_edges*unit_size, MPI_CHAR,
                       remote_node, index_0, n_adj_edges*unit_size, MPI_CHAR, *outgoing_adj_list_data_win[s_i]);
             }
             __sync_fetch_and_add(&consumer_idx[thread_i], fetching_num);           
@@ -2608,7 +2608,7 @@ public:
               for (auto v_itr = itr->second.begin(); v_itr != itr->second.end(); ++v_itr) {
                 __asm volatile ("pause" ::: "memory");
                 auto v_i = *v_itr;
-                auto cached_edgeset_ptr = &outgoing_edge_cache[0][0][v_i % FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES];
+                auto cached_edgeset_ptr = &outgoing_edge_cache[0][key[1]][v_i % FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES];
                 cached_edgeset_ptr->vtx = v_i + 1;
               }
           }
@@ -2793,10 +2793,9 @@ public:
                     bool use_cached = false;
                     // fprintf(stderr, "RRR\n");
                     // auto cached_edgeset_ptr = &outgoing_edge_cache[remote_node][s_i][v_i % FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES];
-                    auto cached_edgeset_ptr = &outgoing_edge_cache[0][0][v_i % FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES];
+                    auto cached_edgeset_ptr = &outgoing_edge_cache[0][s_i][v_i % FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES];
                     // fprintf(stderr, "KKK\n");
                     if(cached_edgeset_ptr->vtx > 0) {
-
                       // cache hit
                       if(cached_edgeset_ptr->vtx == v_i + 1) {
                         {
@@ -2912,10 +2911,9 @@ public:
                       bool use_cached = false;
                       // fprintf(stderr, "RRR\n");
                       // auto cached_edgeset_ptr = &outgoing_edge_cache[remote_node][s_i][v_i % FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES];
-                      auto cached_edgeset_ptr = &outgoing_edge_cache[0][0][v_i % FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES];
+                      auto cached_edgeset_ptr = &outgoing_edge_cache[0][s_i][v_i % FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES];
                       // fprintf(stderr, "KKK\n");
                       if(cached_edgeset_ptr->vtx > 0) {
-
                         // cache hit
                         if(cached_edgeset_ptr->vtx == v_i + 1) {
                           {
