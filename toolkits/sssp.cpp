@@ -119,9 +119,9 @@ int main(int argc, char ** argv) {
   graph->load_directed(argv[1], std::atoi(argv[2]));
   VertexId root = std::atoi(argv[3]);
 
-  FM::compute(std::function<void(Graph<Weight> * graph, VertexId)>(compute), graph->partition_id, graph, root);
+  FM::compute(std::function<void(Graph<Weight> * graph, VertexId)>(compute), [&graph](){graph->farmem_handler();}, [&graph](){graph->farmem_handler_terminator();}, graph->partition_id, graph, root);
   for (int run=0;run<1;run++) {
-    FM::compute(std::function<void(Graph<Weight> * graph, VertexId)>(compute), graph->partition_id, graph, root);
+    FM::compute(std::function<void(Graph<Weight> * graph, VertexId)>(compute), [&graph](){graph->farmem_handler();}, [&graph](){graph->farmem_handler_terminator();}, graph->partition_id, graph, root);
   }
 
   delete graph;

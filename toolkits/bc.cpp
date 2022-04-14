@@ -418,15 +418,15 @@ int main(int argc, char ** argv) {
   graph->load_directed(argv[1], std::atoi(argv[2]));
 
   #if COMPACT
-  FM::compute(std::function<void(Graph<Empty>*, VertexId)>(compute_compact), graph->partition_id, graph, root);
+  FM::compute(std::function<void(Graph<Empty>*, VertexId)>(compute_compact),[&graph](){graph->farmem_handler();}, [&graph](){graph->farmem_handler_terminator();}, graph->partition_id, graph, root);
   #else
-  FM::compute(std::function<void(Graph<Empty>*, VertexId)>(compute), graph->partition_id, graph, root);
+  FM::compute(std::function<void(Graph<Empty>*, VertexId)>(compute), [&graph](){graph->farmem_handler();}, [&graph](){graph->farmem_handler_terminator();}, graph->partition_id, graph, root);
   #endif
   for (int run=0;run<1;run++) {
     #if COMPACT
-    FM::compute(std::function<void(Graph<Empty>*, VertexId)>(compute_compact), graph->partition_id, graph, root);
+    FM::compute(std::function<void(Graph<Empty>*, VertexId)>(compute_compact), [&graph](){graph->farmem_handler();}, [&graph](){graph->farmem_handler_terminator();}, graph->partition_id, graph, root);
     #else
-    FM::compute(std::function<void(Graph<Empty>*, VertexId)>(compute), graph->partition_id, graph, root);
+    FM::compute(std::function<void(Graph<Empty>*, VertexId)>(compute), [&graph](){graph->farmem_handler();}, [&graph](){graph->farmem_handler_terminator();}, graph->partition_id, graph, root);
     #endif
   }
 

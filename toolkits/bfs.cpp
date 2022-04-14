@@ -23,6 +23,13 @@ void compute(Graph<Empty> * graph, VertexId root) {
   double exec_time = 0;
   exec_time -= get_time();
 
+  double prepare_time = 0;
+  prepare_time -= get_time();
+
+  double swap_time = 0;
+  double process_vertices_time = 0;
+  double process_edges_time = 0;
+
   VertexId * parent = graph->alloc_vertex_array<VertexId>();
   VertexSubset * visited = graph->alloc_vertex_subset();
   VertexSubset * active_in = graph->alloc_vertex_subset();
@@ -36,12 +43,14 @@ void compute(Graph<Empty> * graph, VertexId root) {
   parent[root] = root;
 
   VertexId active_vertices = 1;
-
+  prepare_time += get_time();
+  
   for (int i_i=0;active_vertices>0;i_i++) {
     if (graph->partition_id==0) {
       printf("active(%d)>=%u\n", i_i, active_vertices);
     }
     active_out->clear();
+    process_edges_time -= get_time();
     active_vertices = graph->process_edges<VertexId,VertexId>(
       [&](VertexId src){
         graph->emit(src, src);
@@ -76,6 +85,8 @@ void compute(Graph<Empty> * graph, VertexId root) {
       },
       active_in, visited
     );
+    process_edges_time += get_time();
+    process_vertices_time -= get_time();
     active_vertices = graph->process_vertices<VertexId>(
       [&](VertexId vtx) {
         visited->set_bit(vtx);
@@ -83,11 +94,18 @@ void compute(Graph<Empty> * graph, VertexId root) {
       },
       active_out
     );
+    process_vertices_time += get_time();
+    swap_time -= get_time();
     std::swap(active_in, active_out);
+  	swap_time += get_time();
   }
 
   exec_time += get_time();
   if (graph->partition_id==0) {
+  	printf("prepare_time=%lf(s)\n", prepare_time);
+  	printf("process_vertices_time=%lf(s)\n", process_vertices_time);
+  	printf("process_edges_time=%lf(s)\n", process_edges_time);
+  	printf("swap_time=%lf(s)\n", swap_time);
     printf("exec_time=%lf(s)\n", exec_time);
   }
 
@@ -122,9 +140,9 @@ int main(int argc, char ** argv) {
   VertexId root = std::atoi(argv[3]);
   graph->load_directed(argv[1], std::atoi(argv[2]));
 
-  FM::compute(std::function<void(Graph<Empty>*, VertexId)>(compute), graph->partition_id, graph, root);
+  FM::compute(std::function<void(Graph<Empty>*, VertexId)>(compute), [&graph](){graph->farmem_handler();}, [&graph](){graph->farmem_handler_terminator();}, graph->partition_id, graph, root);
   for (int run=0;run<1;run++) {
-    FM::compute(std::function<void(Graph<Empty>*, VertexId)>(compute), graph->partition_id, graph, root);
+    FM::compute(std::function<void(Graph<Empty>*, VertexId)>(compute), [&graph](){graph->farmem_handler();}, [&graph](){graph->farmem_handler_terminator();}, graph->partition_id, graph, root);
   }
   delete graph;
   return 0;

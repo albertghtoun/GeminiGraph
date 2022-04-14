@@ -142,9 +142,9 @@ int main(int argc, char ** argv) {
   graph = new Graph<Empty>();
   graph->load_directed(argv[1], std::atoi(argv[2]));
   int iterations = std::atoi(argv[3]);
-  FM::compute(std::function<void(Graph<Empty>*, int)>(compute), graph->partition_id, graph, iterations);
+  FM::compute(std::function<void(Graph<Empty>*, int)>(compute), [&graph](){graph->farmem_handler();}, [&graph](){graph->farmem_handler_terminator();}, graph->partition_id, graph, iterations);
   for (int run=0;run<1;run++) {
-    FM::compute(std::function<void(Graph<Empty>*, int)>(compute), graph->partition_id, graph, iterations);
+    FM::compute(std::function<void(Graph<Empty>*, int)>(compute), [&graph](){graph->farmem_handler();}, [&graph](){graph->farmem_handler_terminator();}, graph->partition_id, graph, iterations);
   }
 
   delete graph;
