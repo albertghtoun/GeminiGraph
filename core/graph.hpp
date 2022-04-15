@@ -2839,17 +2839,18 @@ public:
           int args_send_buffer_num[2] = {0, 0};
           std::atomic<int> remote_node(-1);
 
-          #pragma omp parallel for
+          // The use of omp parallel for would incur significant over 100x slow down for executing this for loop
+          // #pragma omp parallel for
           for (int thread_i = 0; thread_i < threads; ++thread_i) {
             if (args_bounded_buffer_state[thread_i]->consumer_idx >= args_bounded_buffer_state[thread_i]->producer_idx)
               continue;
-
-            assert(thread_i == omp_get_thread_num());
+  
+            // assert(thread_i == omp_get_thread_num());
             int s_i = get_socket_id(thread_i);
             unsigned fetching_num = args_bounded_buffer_state[thread_i]->producer_idx - args_bounded_buffer_state[thread_i]->consumer_idx;
             assert(fetching_num <= FM::BOUNDED_QUEUE_SIZE);
             unsigned idx = args_bounded_buffer_state[thread_i]->consumer_idx % FM::BOUNDED_QUEUE_SIZE;
-            
+        
             if (remote_node == -1) {
               remote_node = args_bounded_buffer_state[thread_i]->args_bounded_buffer[idx].remote_node;
             } else {
@@ -2857,6 +2858,7 @@ public:
             }
 
             int reserved_idx =  __sync_fetch_and_add(&args_send_buffer_num[s_i], fetching_num);
+            
             // prepare the sending buffer
             memcpy(&args_sending_buffer[s_i]->data[sizeof(FM::ArgsBoundedBufferElement) * reserved_idx], 
                    &args_bounded_buffer_state[thread_i]->args_bounded_buffer[idx], 
@@ -2898,9 +2900,10 @@ public:
           fprintf(stderr, "%d received remote edges.\n", partition_id);
 
           // caching the edges locally.
-          #pragma omp parallel for
+          // The use of omp parallel for would incur significant over 100x slow down for executing this for loop
+          // #pragma omp parallel for
           for (int thread_i = 0; thread_i < threads; ++thread_i) {
-              assert(thread_i == omp_get_thread_num());
+              // assert(thread_i == omp_get_thread_num());
               int s_i = get_socket_id(thread_i);
               char* current = edges_buffer[thread_i]->data;
               // fprintf(stderr, "thread_id: %d - MMMMM\n", thread_i);
@@ -2912,9 +2915,11 @@ public:
                 auto cached_edgeset_ptr = &outgoing_edge_cache[remote_node.load()][s_i][edgesHeader->v_i % FM::edge_cache_pool_t<EdgeData>::EDGE_CACHE_ENTRIES];
                 assert(cached_edgeset_ptr->vtx != edgesHeader->v_i + 1);
                 // fprintf(stderr, "thread_id: %d - OOOO - vtx = %d\n", thread_i, edgesHeader->v_i);
+                FM::step_by_step_time -= MPI_Wtime(); 
                 cached_edgeset_ptr->init(nEdges, s_i);
                 // fprintf(stderr, "thread_id: %d - PPPP\n", thread_i);
                 memcpy(cached_edgeset_ptr->edges, current + sizeof(FM::EdgeBufferElementHeader), sizeof(AdjUnit<EdgeData>) * nEdges);
+                FM::step_by_step_time += MPI_Wtime();
                 // fprintf(stderr, "thread_id: %d - QQQQ - edges = \n", thread_i);
                 // for (int i = 0; i < nEdges; ++i) {
                 //   fprintf(stderr, "%d ", cached_edgeset_ptr->edges[i].neighbour);
@@ -2974,7 +2979,7 @@ public:
             // FM::edge_cache_set<EdgeData>* gc_edgeset_start = NULL;
             // std::mutex insert_after_head;
             // #endif
-            FM::step_by_step_time -= MPI_Wtime();
+            // FM::step_by_step_time -= MPI_Wtime();
             #if ENABLE_EDGE_CACHE == 1
             #pragma omp parallel 
             {
@@ -3027,7 +3032,7 @@ public:
               }
             }
             #endif
-            FM::step_by_step_time += MPI_Wtime();
+            // FM::step_by_step_time += MPI_Wtime();
 
             // #ifdef PRINT_DEBUG_MESSAGES
             // fprintf(stderr, "%d submitted all fetching jobs. buffer size = %d\n", partition_id, buffer_size);
