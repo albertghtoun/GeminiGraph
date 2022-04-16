@@ -190,7 +190,7 @@ public:
 
   Graph() {
     // threads = numa_num_configured_cpus();
-    threads = 1; // speedup as threads count go from 1 to 6, then sharply goes down.
+    threads = 6; // speedup as threads count go from 1 to 6, then sharply goes down.
     #if ENABLE_EDGE_CACHE == 1
     assert(threads <= FM::edge_cache_set<EdgeData>::MAX_THREADS_SUPPORTED);
     #endif
