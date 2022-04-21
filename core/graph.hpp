@@ -3178,7 +3178,7 @@ public:
                         }
                         (*FM::outgoing_edge_cache_hit)++;
                       } else {
-                        assert(false);
+                        // assert(false);
                         // cache miss
                         (*FM::outgoing_edge_cache_miss)++;
                       }
@@ -3296,7 +3296,7 @@ public:
                           }
                           (*FM::outgoing_edge_cache_hit)++;
                         } else {
-                          assert(false);
+                          // assert(false);
                           // cache miss
                           (*FM::outgoing_edge_cache_miss)++;
                         }
